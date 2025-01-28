@@ -29,8 +29,6 @@ public class ScheduleService {
                 UserScheduleSelection userScheduleSelection = userConsoleInteractionService.getUserScheduleSelection(numberOfFollowUps);
                 Schedule schedule = createNewSchedule(userScheduleSelection.numberOfFollowUps(), userScheduleSelection.daysBetweenFollowUps());
                 insertSchedule(schedule);
-            } else { // uniqueSchedules >= 1
-                throw new IllegalStateException("Can have more than one schedule currently");
             }
         }  catch (SQLException e) {
             throw new FollowUpScheduleServiceException("Failed to get unique schedules: " + e.getMessage());

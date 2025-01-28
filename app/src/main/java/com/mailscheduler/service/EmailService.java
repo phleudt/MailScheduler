@@ -258,6 +258,7 @@ public class EmailService {
 
     private void updateInitialEmailTracking(List<Email> initialEmails) {
         try {
+            if (initialEmails == null || initialEmails.isEmpty()) return;
             spreadsheetService.markEmailsAsSent(emailAddressColumn, initialEmails, getInitialEmailColumnToMark());
         } catch (SpreadsheetOperationException e) {
             LOGGER.severe("Failed to mark initial emails as sent: " + e.getMessage());
@@ -266,7 +267,7 @@ public class EmailService {
 
     private void updateFollowUpEmailTracking(List<Email> followUpEmails) {
         try {
-            if (followUpEmails.isEmpty()) return;
+            if (followUpEmails == null || followUpEmails.isEmpty()) return;
             for (int i = 1; i <= getMaxFollowupNumber(); i++) {
                 final int followUpNumber = i;
                 List<Email> followUpEmailsToMark = followUpEmails.stream()
