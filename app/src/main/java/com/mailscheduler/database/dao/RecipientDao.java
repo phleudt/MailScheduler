@@ -62,6 +62,7 @@ public class RecipientDao extends GenericDao<RecipientEntity> {
             return insert(INSERT_RECIPIENT_QUERY,
                     recipient.getName(),
                     recipient.getEmail_address(),
+                    recipient.getGender(),
                     recipient.getDomain(),
                     recipient.getPhone_number(),
                     recipient.getInitial_email_date(),
