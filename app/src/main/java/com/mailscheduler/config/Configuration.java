@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Configuration {
-    private final Map<String, SpreadsheetReference> contactColumns; // Saves keys to the corresponding columns in the spreadsheet
+    private final Map<String, SpreadsheetReference> contactColumns;
     private final Map<String, SpreadsheetReference> markEmailColumns;
     private final Map<String, SpreadsheetReference> markSchedulesForEmailColumns;
     private final String spreadsheetId;
@@ -116,8 +116,13 @@ public class Configuration {
             return this;
         }
 
-        public Builder addSendingCriteria(SendingCriterion criteria) {
-            this.sendingCriteria.add(criteria);
+        public Builder setSendingCriteria(List<SendingCriterion> criteria) {
+            this.sendingCriteria = criteria;
+            return this;
+        }
+
+        public Builder addSendingCriterion(SendingCriterion criterion) {
+            this.sendingCriteria.add(criterion);
             return this;
         }
 

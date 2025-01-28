@@ -133,7 +133,7 @@ public class ConfigurationService {
     private Map<String, SpreadsheetReference> parseContactColumns(Properties properties) {
         Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
         String[] contactColumnKeys = {
-                "domain", "emailAddress", "name", "phoneNumber", "initialEmailDate"
+                "domain", "emailAddress", "name", "gender", "phoneNumber", "initialEmailDate"
         };
 
         for (String key : contactColumnKeys) {
@@ -240,7 +240,7 @@ public class ConfigurationService {
                     );
                 }
 
-                builder.addSendingCriteria(criteriaBuilder.build());
+                builder.addSendingCriterion(criteriaBuilder.build());
             } catch (Exception e) {
                 // Log and skip invalid criteria
                 logger.warn("Failed to parse sending criteria {}: {}", i, e.getMessage());

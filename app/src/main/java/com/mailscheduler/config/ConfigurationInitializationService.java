@@ -30,7 +30,46 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
      * @throws ConfigurationService.ConfigurationException If configuration is invalid
      */
     public Configuration initializeConfiguration() throws ConfigurationService.ConfigurationException {
-        System.out.println("=== Mail Scheduler Configuration Wizard ===");
+        System.out.println("=== Mail Scheduler Configuration Wizard ===\n");
+        System.out.println("Welcome to MailScheduler Configuration Wizard!");
+        System.out.println("Are you using the standard template? (y/n)");
+
+        while (true) {
+            String useTemplate = scanner.next().trim().toLowerCase();
+
+            if (useTemplate.equals("yes") || useTemplate.equals("y")) {
+                return initializeTemplateConfiguration();
+            } else if (useTemplate.equals("no") || useTemplate.equals("n")){
+                return initializeCustomConfiguration();
+            } else {
+                System.out.println("Invalid input. Please enter 'yes/y' or 'no/n'");
+            }
+        }
+    }
+
+    private Configuration initializeTemplateConfiguration() throws ConfigurationService.ConfigurationException {
+        System.out.println("\nUsing standard template configuration...");
+
+        String spreadsheetId = configureSpreadsheetId();
+        boolean saveMode = configureSaveMode();
+        String defaultSender = configureDefaultSender();
+        List<SendingCriterion> sendingCriteria = configureSendingCriteria();
+
+        Configuration config = TemplateConfiguration.createTemplateConfiguration(
+                spreadsheetId,
+                saveMode,
+                sendingCriteria,
+                defaultSender
+        );
+
+        System.out.println("\nTemplate configuration completed successfully!");
+        printConfigurationSummary(config);
+
+        return config;
+    }
+
+    private Configuration initializeCustomConfiguration() throws ConfigurationService.ConfigurationException {
+        System.out.println("\nProceeding with custom configuration...");
 
         boolean saveMode = configureSaveMode();
         String spreadsheetId = configureSpreadsheetId();
@@ -58,6 +97,29 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
 
         System.out.println("=== Configuration Completed Successfully ===");
         return configuration;
+    }
+
+    private void printConfigurationSummary(Configuration config) {
+        System.out.println("\nConfiguration Summary:");
+        System.out.println("Spreadsheet ID: " + config.getSpreadsheetId());
+        System.out.println("Default Sender: " + config.getDefaultSender());
+        System.out.println("Number of Follow-ups: " + config.getNumberOfFollowUps());
+        System.out.println("Save Mode: " + config.isSaveMode());
+
+        System.out.println("\nContact Columns:");
+        config.getContactColumns().forEach((key, value) ->
+                System.out.println("  " + key + ": Column " + value.getReference())
+        );
+
+        System.out.println("\nMark Email Columns:");
+        config.getMarkEmailColumns().forEach((key, value) ->
+                System.out.println("  " + key + ": Column " + value.getReference())
+        );
+
+        System.out.println("\nMark Schedule Columns:");
+        config.getMarkSchedulesForEmailColumns().forEach((key, value) ->
+                System.out.println("  " + key + ": Column " + value.getReference())
+        );
     }
 
     /**
@@ -149,11 +211,11 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
         Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
 
         String[] contactColumnKeys = {
-                "domain", "emailAddress", "name", "phoneNumber", "initialEmailDate"
+                "domain", "emailAddress", "name", "gender", "phoneNumber", "initialEmailDate"
         };
 
         String[] exampleColumns = {
-                "P", "Q", "R", "S", "D"
+                "A", "B", "C", "D", "S", "I"
         };
 
         for (int i = 0; i < contactColumnKeys.length; i++) {
