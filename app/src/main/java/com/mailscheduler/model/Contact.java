@@ -97,7 +97,7 @@ public class Contact {
     }
 
     private static boolean getSendingCriteria(List<String> attributes) {
-        for (int i = 5; i <= attributes.size() - 1; i++) {
+        for (int i = 6; i < attributes.size(); i++) {
             if (getOrNull(attributes, i) == null) {
                 return false;
             }
