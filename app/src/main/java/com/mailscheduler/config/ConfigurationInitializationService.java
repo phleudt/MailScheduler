@@ -286,8 +286,8 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
 
         System.out.println("Select criteria type:");
         System.out.println("INFO: Currently, only COLUMN_FILLED works");
-        for (int i = 1; i <= criteriaTypes.size(); i++) {
-            System.out.println((i) + ". " + criteriaTypes.get(i));
+        for (int i = 0; i < criteriaTypes.size(); i++) {
+            System.out.println((i + 1) + ". " + criteriaTypes.get(i));
         }
 
         int criteriaTypeChoice = getValidatedIntegerInput("Select criteria type:", criteriaTypes.size()) - 1;
