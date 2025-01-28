@@ -67,23 +67,21 @@ public class Main {
         this.databaseManager = DatabaseManager.getInstance();
         this.databaseManager.setupDatabase();
 
-        this.emailService = initializeEmailService();
+        this.emailService = new EmailService(
+                GmailService.getInstance(),
+                new SpreadsheetService(GoogleSheetService.getInstance(), configuration),
+                configuration,
+                new EmailTemplateDao(databaseManager)
+        );
+
         this.contactSynchronizationService = new ContactSynchronizationService(
                 new SpreadsheetService(GoogleSheetService.getInstance(), configuration),
                 configuration
         );
+
         this.scheduleService = new ScheduleService();
         this.emailTemplateManager = new EmailTemplateManager(
                 GmailService.getInstance(),
-                new EmailTemplateDao(databaseManager)
-        );
-    }
-
-    private EmailService initializeEmailService() throws Exception {
-        return new EmailService(
-                GmailService.getInstance(),
-                new SpreadsheetService(GoogleSheetService.getInstance(), configuration),
-                configuration,
                 new EmailTemplateDao(databaseManager)
         );
     }

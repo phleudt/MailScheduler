@@ -10,6 +10,7 @@ import java.util.List;
 public class Contact {
     private String name;
     private String emailAddress;
+    private String gender;
     private String domain;
     private String phoneNumber;
     private ZonedDateTime initialEmailDate;
@@ -19,6 +20,7 @@ public class Contact {
     private Contact(Builder builder) {
         this.name = builder.name;
         this.emailAddress = builder.emailAddress;
+        this.gender = builder.gender;
         this.domain = builder.domain;
         this.phoneNumber = builder.phoneNumber;
         this.initialEmailDate = builder.initialEmailDate;
@@ -85,8 +87,9 @@ public class Contact {
         builder.setDomain(getOrNull(attributes, 0))
                 .setEmailAddress(getOrNull(attributes, 1))
                 .setName(getOrNull(attributes, 2))
-                .setPhoneNumber(getOrNull(attributes, 3))
-                .setInitialEmailDate(TimeUtils.parseDateToZonedDateTime(getOrNull(attributes, 4)))
+                .setGender(getOrNull(attributes, 3))
+                .setPhoneNumber(getOrNull(attributes, 4))
+                .setInitialEmailDate(TimeUtils.parseDateToZonedDateTime(getOrNull(attributes, 5)))
                 .setSpreadsheetRow(spreadsheetRow)
                 .setIsSendingCriteriaFulfilled(getSendingCriteria(attributes));
 
@@ -135,6 +138,14 @@ public class Contact {
         this.name = name;
     }
 
+    public String getGender() {
+        return gender;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
     public String getPhoneNumber() {
         return phoneNumber;
     }
@@ -175,6 +186,7 @@ public class Contact {
     public static class Builder {
         private String name;
         private String emailAddress;
+        private String gender;
         private String domain;
         private String phoneNumber;
         private ZonedDateTime initialEmailDate;
@@ -189,6 +201,11 @@ public class Contact {
 
         public Builder setEmailAddress(String emailAddress) {
             this.emailAddress = emailAddress;
+            return this;
+        }
+
+        public Builder setGender(String gender) {
+            this.gender = gender;
             return this;
         }
 

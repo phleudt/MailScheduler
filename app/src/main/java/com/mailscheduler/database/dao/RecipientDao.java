@@ -12,8 +12,12 @@ import java.util.logging.Logger;
 public class RecipientDao extends GenericDao<RecipientEntity> {
     private static final Logger LOGGER = Logger.getLogger(RecipientDao.class.getName());
 
-    private static final String INSERT_RECIPIENT_QUERY = "INSERT INTO Recipients (name, email_address, domain, phone_number, initial_email_date, has_replied, spreadsheet_row) VALUES (?, ?, ?, ?, ?, ?, ?)";
-    private static final String UPDATE_RECIPIENT_BY_ID_QUERY = "UPDATE Recipients SET name = ?, email_address = ?, domain = ?, phone_number = ?, initial_email_date = ?, has_replied = ?, spreadsheet_row = ? WHERE id = ?";
+    private static final String INSERT_RECIPIENT_QUERY =
+            "INSERT INTO Recipients (name, email_address, gender, domain, phone_number, initial_email_date, has_replied, spreadsheet_row) " +
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    private static final String UPDATE_RECIPIENT_BY_ID_QUERY =
+            "UPDATE Recipients SET name = ?, email_address = ?, gender = ?, domain = ?, phone_number = ?, " +
+                    "initial_email_date = ?, has_replied = ?, spreadsheet_row = ? WHERE id = ?";
     private static final String DELETE_RECIPIENT_BY_ID_QUERY = "DELETE FROM Recipients WHERE id = ?";
     private static final String FIND_RECIPIENT_BY_ID_QUERY = "SELECT * FROM Recipients WHERE id = ?";
     private static final String FIND_EMAIL_ADDRESS_BY_ID_QUERY = "SELECT email_address FROM Recipients WHERE id = ?";
@@ -43,6 +47,7 @@ public class RecipientDao extends GenericDao<RecipientEntity> {
                 resultSet.getInt("id"),
                 resultSet.getString("name"),
                 resultSet.getString("email_address"),
+                resultSet.getString("gender"),
                 resultSet.getString("domain"),
                 resultSet.getString("phone_number"),
                 resultSet.getTimestamp("initial_email_date"),
