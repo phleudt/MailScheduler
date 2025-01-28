@@ -76,6 +76,47 @@ The application uses a `config.properties` file for configuration. Key settings 
 - Contact column mappings
 - Email template settings
 
+## Spreadsheet Template
+
+### Quick Start with Template
+For the fastest setup, use our pre-configured spreadsheet template:
+1. Click this link to copy the template: [MailScheduler Template](https://docs.google.com/spreadsheets/d/1UjmCckUiKtSDSXxLuncNGIoQGeZhatwn6gCKdnRcdtk/copy)
+2. The template will open in your Google Drive, click "Make a copy"
+3. When running MailScheduler, choose "yes" when asked about using the standard template
+
+### Template Structure
+The template is pre-configured with the following columns:
+
+#### Contact Information (Columns A-F)
+- A: Domain
+- B: Email Address
+- C: Name
+- D: Gender
+- S: Phone Number
+- I: Initial Email Date
+
+#### Email Status Markers (Columns G-J)
+- J: Initial Email
+- L: Follow-up 1
+- N: Follow-up 2
+- P: Follow-up 3
+- R: Follow-up 4
+
+#### Schedule Markers (Columns K-N)
+- I: Initial Schedule
+- K: Follow-up 1 Schedule
+- M: Follow-up 2 Schedule
+- O: Follow-up 3 Schedule
+- Q: Follow-up 4 Schedule
+
+### Usage Notes
+- The template includes example data and formatting - feel free to delete it
+- Don't change the column order
+- Status markers use:
+    - Empty: No action
+    - "#": Email scheduled
+    - "x": Email sent
+
 ## Planned Features
 - Multiple schedule support with timezone handling
 - Enhanced template management
@@ -93,4 +134,4 @@ Contributions are welcome! Please feel free to submit a Pull Request. For major 
 This project is licensed under the [MIT License](LICENSE.md)
 
 ## Status
-⚠️ This project is currently in development. Features and APIs may change without notice.
+⚠️ This project is currently in development. Features and APIs may change without notice. Bugs may occur.
