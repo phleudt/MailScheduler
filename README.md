@@ -80,7 +80,7 @@ The application uses a `config.properties` file for configuration. Key settings 
 
 ### Quick Start with Template
 For the fastest setup, use our pre-configured spreadsheet template:
-1. Click this link to copy the template: [MailScheduler Template](https://docs.google.com/spreadsheets/d/1UjmCckUiKtSDSXxLuncNGIoQGeZhatwn6gCKdnRcdtk/copy)
+1. Click this link to copy the template: [MailScheduler Template](https://docs.google.com/spreadsheets/d/1x3dv-V1OPNvbjUAA6dYaTgCHbK76jh5z3AT925JPb9A/copy)
 2. The template will open in your Google Drive, click "Make a copy"
 3. When running MailScheduler, choose "yes" when asked about using the standard template
 
@@ -91,7 +91,7 @@ The template is pre-configured with the following columns:
 - A: Domain
 - B: Email Address
 - C: Name
-- D: Gender
+- D: Addressing in the mail
 - S: Phone Number
 - I: Initial Email Date
 
@@ -110,7 +110,6 @@ The template is pre-configured with the following columns:
 - Q: Follow-up 4 Schedule
 
 ### Usage Notes
-- The template includes example data and formatting - feel free to delete it
 - Don't change the column order
 - Status markers use:
     - Empty: No action
