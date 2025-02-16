@@ -226,6 +226,7 @@ public class EmailService {
     }
 
     private void sendInitialEmails(List<Email> initialEmails) {
+        if (initialEmails == null || initialEmails.isEmpty()) return;
         for (Email initialEmail : initialEmails) {
             try {
                 sendEmail(initialEmail);
