@@ -207,6 +207,19 @@ public class ContactSynchronizationService {
             return;
         }
 
+        // Check if the only difference is the initial email date
+        if (existingDto.equalsWithoutInitialEmailDate(newDto)) {
+            RecipientDto updatedRecipient = new RecipientDto.Builder()
+                    .fromExisting(existingDto)
+                    .setInitialEmailDate(newDto.getInitialEmailDate())
+                    .build();
+            recipientDao.updateRecipientById(
+                    updatedRecipient.getId(),
+                    EntityMapper.toRecipientEntity(updatedRecipient)
+            );
+            return;
+        }
+
         if (userInteractionService.promptContactUpdate(existingDto, newDto)) {
             RecipientDto mergeRecipient = mergeRecipients(existingDto, newDto);
             recipientDao.updateRecipientById(
@@ -242,6 +255,7 @@ public class ContactSynchronizationService {
                 .mergeWith(newRecipient)
                 .build();
     }
+
 
     private List<Contact> fetchContactsFromSpreadsheet(List<SpreadsheetReference> spreadsheetReferences) throws RecipientServiceException {
         try {
@@ -296,10 +310,13 @@ class UserInteractionService extends AbstractUserConsoleInteractionService {
     }
 
     private void displayDifferenceBetweenRecipients(RecipientDto existingRecipient, RecipientDto newRecipient) {
-        System.out.println("Existing Contact Found:");
+        System.out.println("Existing Contact Found: " + existingRecipient.getName());
 
         if (existingRecipient.getName() != null && newRecipient.getName() != null && !existingRecipient.getName().equals(newRecipient.getName())) {
             System.out.println("Name: " + existingRecipient.getName() + " -> " + newRecipient.getName());
+        }
+        if (existingRecipient.getSalutation() != null && newRecipient.getSalutation() != null && !existingRecipient.getSalutation().equals(newRecipient.getSalutation())) {
+            System.out.println("Salutation: " + existingRecipient.getName() + " -> " + newRecipient.getName());
         }
         if (existingRecipient.getEmailAddress() != null && newRecipient.getEmailAddress() != null && !existingRecipient.getEmailAddress().equals(newRecipient.getEmailAddress())) {
             System.out.println("Email Address: " + existingRecipient.getEmailAddress() + " -> " + newRecipient.getEmailAddress());
@@ -315,6 +332,9 @@ class UserInteractionService extends AbstractUserConsoleInteractionService {
         }
         if (existingRecipient.getSpreadsheetRow() != newRecipient.getSpreadsheetRow()) {
             System.out.println("Spreadsheet Row: " + existingRecipient.getSpreadsheetRow() + " -> " + newRecipient.getSpreadsheetRow());
+        }
+        if (existingRecipient.getInitialEmailDateAsString() != newRecipient.getInitialEmailDateAsString()) {
+            System.out.println("Initial Email date: " + existingRecipient.getInitialEmailDateAsString() + " -> " + newRecipient.getInitialEmailDateAsString());
         }
     }
 }
