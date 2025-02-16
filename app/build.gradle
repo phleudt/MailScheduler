@@ -26,7 +26,6 @@ jar {
 shadowJar {
     // Ensure all dependencies are included
     mergeServiceFiles()
-    minimize()
 }
 
 dependencies {
