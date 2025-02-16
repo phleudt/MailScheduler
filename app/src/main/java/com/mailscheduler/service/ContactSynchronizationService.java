@@ -298,16 +298,16 @@ class UserInteractionService extends AbstractUserConsoleInteractionService {
     private void displayDifferenceBetweenRecipients(RecipientDto existingRecipient, RecipientDto newRecipient) {
         System.out.println("Existing Contact Found:");
 
-        if (!existingRecipient.getName().equals(newRecipient.getName())) {
+        if (existingRecipient.getName() != null && newRecipient.getName() != null && !existingRecipient.getName().equals(newRecipient.getName())) {
             System.out.println("Name: " + existingRecipient.getName() + " -> " + newRecipient.getName());
         }
-        if (!existingRecipient.getEmailAddress().equals(newRecipient.getEmailAddress())) {
+        if (existingRecipient.getEmailAddress() != null && newRecipient.getEmailAddress() != null && !existingRecipient.getEmailAddress().equals(newRecipient.getEmailAddress())) {
             System.out.println("Email Address: " + existingRecipient.getEmailAddress() + " -> " + newRecipient.getEmailAddress());
         }
-        if (!existingRecipient.getDomain().equals(newRecipient.getDomain())) {
+        if (existingRecipient.getDomain() != null && newRecipient.getDomain() != null && !existingRecipient.getDomain().equals(newRecipient.getDomain())) {
             System.out.println("Domain: " + existingRecipient.getDomain() + " -> " + newRecipient.getDomain());
         }
-        if (!existingRecipient.getPhoneNumber().equals(newRecipient.getPhoneNumber())) {
+        if (existingRecipient.getPhoneNumber() != null && newRecipient.getPhoneNumber() != null && !existingRecipient.getPhoneNumber().equals(newRecipient.getPhoneNumber())) {
             System.out.println("Phone Number: " + existingRecipient.getPhoneNumber() + " -> " + newRecipient.getPhoneNumber());
         }
         if (existingRecipient.hasReplied() != newRecipient.hasReplied()) {
