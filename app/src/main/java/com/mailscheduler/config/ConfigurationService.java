@@ -133,7 +133,7 @@ public class ConfigurationService {
     private Map<String, SpreadsheetReference> parseContactColumns(Properties properties) {
         Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
         String[] contactColumnKeys = {
-                "domain", "emailAddress", "name", "gender", "phoneNumber", "initialEmailDate"
+                "domain", "emailAddress", "name", "salutation", "phoneNumber", "initialEmailDate"
         };
 
         for (String key : contactColumnKeys) {

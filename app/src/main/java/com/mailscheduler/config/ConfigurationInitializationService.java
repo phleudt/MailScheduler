@@ -211,7 +211,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
         Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
 
         String[] contactColumnKeys = {
-                "domain", "emailAddress", "name", "gender", "phoneNumber", "initialEmailDate"
+                "domain", "emailAddress", "name", "salutation", "phoneNumber", "initialEmailDate"
         };
 
         String[] exampleColumns = {

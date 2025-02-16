@@ -73,7 +73,7 @@ public final class DatabaseManager {
                 "id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "name TEXT," +
                 "email_address TEXT NOT NULL," +
-                "gender TEXT," +
+                "salutation TEXT," +
                 "domain TEXT," +
                 "phone_number TEXT," +
                 "initial_email_date TIMESTAMP," +

@@ -10,7 +10,7 @@ import java.util.List;
 public class Contact {
     private String name;
     private String emailAddress;
-    private String gender;
+    private String salutation;
     private String domain;
     private String phoneNumber;
     private ZonedDateTime initialEmailDate;
@@ -20,7 +20,7 @@ public class Contact {
     private Contact(Builder builder) {
         this.name = builder.name;
         this.emailAddress = builder.emailAddress;
-        this.gender = builder.gender;
+        this.salutation = builder.salutation;
         this.domain = builder.domain;
         this.phoneNumber = builder.phoneNumber;
         this.initialEmailDate = builder.initialEmailDate;
@@ -87,7 +87,7 @@ public class Contact {
         builder.setDomain(getOrNull(attributes, 0))
                 .setEmailAddress(getOrNull(attributes, 1))
                 .setName(getOrNull(attributes, 2))
-                .setGender(getOrNull(attributes, 3))
+                .setSalutation(getOrNull(attributes, 3))
                 .setPhoneNumber(getOrNull(attributes, 4))
                 .setInitialEmailDate(TimeUtils.parseDateToZonedDateTime(getOrNull(attributes, 5)))
                 .setSpreadsheetRow(spreadsheetRow)
@@ -138,12 +138,12 @@ public class Contact {
         this.name = name;
     }
 
-    public String getGender() {
-        return gender;
+    public String getSalutation() {
+        return salutation;
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
+    public void setSalutation(String salutation) {
+        this.salutation = salutation;
     }
 
     public String getPhoneNumber() {
@@ -186,7 +186,7 @@ public class Contact {
     public static class Builder {
         private String name;
         private String emailAddress;
-        private String gender;
+        private String salutation;
         private String domain;
         private String phoneNumber;
         private ZonedDateTime initialEmailDate;
@@ -204,8 +204,8 @@ public class Contact {
             return this;
         }
 
-        public Builder setGender(String gender) {
-            this.gender = gender;
+        public Builder setSalutation(String salutation) {
+            this.salutation = salutation;
             return this;
         }
 

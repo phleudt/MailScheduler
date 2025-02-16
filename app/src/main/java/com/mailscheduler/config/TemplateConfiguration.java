@@ -11,7 +11,7 @@ public class TemplateConfiguration {
             "domain", SpreadsheetReference.ofColumn("A"),
             "emailAddress", SpreadsheetReference.ofColumn("B"),
             "name", SpreadsheetReference.ofColumn("C"),
-            "gender", SpreadsheetReference.ofColumn("D"),
+            "salutation", SpreadsheetReference.ofColumn("D"),
             "phoneNumber", SpreadsheetReference.ofColumn("S"),
             "initialEmailDate", SpreadsheetReference.ofColumn("I")
     );

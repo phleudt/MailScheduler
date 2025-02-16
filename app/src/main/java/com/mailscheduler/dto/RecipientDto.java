@@ -3,13 +3,12 @@ package com.mailscheduler.dto;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Objects;
-import java.util.SimpleTimeZone;
 
 public final class RecipientDto {
     private final int id;
     private final String name;
     private final String emailAddress;
-    private final String gender;
+    private final String salutation;
     private final String domain;
     private final String phoneNumber;
     private final ZonedDateTime initialEmailDate;
@@ -19,7 +18,7 @@ public final class RecipientDto {
     public RecipientDto(int id,
                         String name,
                         String emailAddress,
-                        String gender,
+                        String salutation,
                         String domain,
                         String phoneNumber,
                         ZonedDateTime initialEmailDate,
@@ -29,7 +28,7 @@ public final class RecipientDto {
         this.id = id;
         this.name = name;
         this.emailAddress = emailAddress;
-        this.gender = gender;
+        this.salutation = salutation;
         this.domain = domain;
         this.phoneNumber = phoneNumber;
         this.initialEmailDate = initialEmailDate;
@@ -50,8 +49,8 @@ public final class RecipientDto {
         return emailAddress;
     }
 
-    public String getGender() {
-        return gender;
+    public String getSalutation() {
+        return salutation;
     }
 
     public String getDomain() {
@@ -82,7 +81,7 @@ public final class RecipientDto {
         return new RecipientDto(this.id,
                 this.name,
                 this.emailAddress,
-                this.gender,
+                this.salutation,
                 this.domain,
                 this.phoneNumber,
                 newInitialEmailDate,
@@ -128,7 +127,7 @@ public final class RecipientDto {
         private int id;
         private String name;
         private String emailAddress;
-        private String gender;
+        private String salutation;
         private String domain;
         private String phoneNumber;
         private ZonedDateTime initialEmailDate;
@@ -142,7 +141,7 @@ public final class RecipientDto {
             this.id = existingDto.getId();
             this.name = existingDto.getName();
             this.emailAddress = existingDto.getEmailAddress();
-            this.gender = existingDto.getGender();
+            this.salutation = existingDto.getSalutation();
             this.domain = existingDto.getDomain();
             this.phoneNumber = existingDto.getPhoneNumber();
             this.initialEmailDate = existingDto.getInitialEmailDate();
@@ -187,8 +186,8 @@ public final class RecipientDto {
             return this;
         }
 
-        public Builder setGender(String gender) {
-            this.gender = gender;
+        public Builder setSalutation(String salutation) {
+            this.salutation = salutation;
             return this;
         }
 
@@ -218,7 +217,7 @@ public final class RecipientDto {
         }
 
         public RecipientDto build() {
-            return new RecipientDto(id, name, emailAddress, gender, domain, phoneNumber, initialEmailDate, hasReplied, spreadsheetRow);
+            return new RecipientDto(id, name, emailAddress, salutation, domain, phoneNumber, initialEmailDate, hasReplied, spreadsheetRow);
         }
     }
 

@@ -172,7 +172,7 @@ public class ContactSynchronizationService {
                 contactSpreadsheetReference.get("domain"),
                 contactSpreadsheetReference.get("emailAddress"),
                 contactSpreadsheetReference.get("name"),
-                contactSpreadsheetReference.get("gender"),
+                contactSpreadsheetReference.get("salutation"),
                 contactSpreadsheetReference.get("phoneNumber"),
                 contactSpreadsheetReference.get("initialEmailDate")
         ));

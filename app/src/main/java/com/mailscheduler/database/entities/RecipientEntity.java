@@ -6,7 +6,7 @@ public class RecipientEntity {
     private int id;
     private String name;
     private String email_address;
-    private String gender;
+    private String salutation;
     private String domain;
     private String phone_number;
     private Timestamp initial_email_date;
@@ -16,7 +16,7 @@ public class RecipientEntity {
     public RecipientEntity(int id,
                            String name,
                            String email_address,
-                           String gender,
+                           String salutation,
                            String domain,
                            String phone_number,
                            Timestamp initial_email_date,
@@ -26,7 +26,7 @@ public class RecipientEntity {
         this.id = id;
         this.name = name;
         this.email_address = email_address;
-        this.gender = gender;
+        this.salutation = salutation;
         this.domain = domain;
         this.phone_number = phone_number;
         this.initial_email_date = initial_email_date;
@@ -58,12 +58,12 @@ public class RecipientEntity {
         this.email_address = email_address;
     }
 
-    public String getGender() {
-        return gender;
+    public String getSalutation() {
+        return salutation;
     }
 
-    public void setGender(String gender) {
-        this.gender = gender;
+    public void setSalutation(String salutation) {
+        this.salutation = salutation;
     }
 
     public String getDomain() {
