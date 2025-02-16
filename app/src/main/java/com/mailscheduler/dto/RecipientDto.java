@@ -66,6 +66,7 @@ public final class RecipientDto {
     }
 
     public String getInitialEmailDateAsString() {
+        if (initialEmailDate == null) return "";
         return initialEmailDate.format(DateTimeFormatter.ofPattern("dd.MM.yyyy"));
     }
 
@@ -90,6 +91,18 @@ public final class RecipientDto {
         );
     }
 
+    public boolean equalsWithoutInitialEmailDate(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        RecipientDto that = (RecipientDto) o;
+        return hasReplied == that.hasReplied &&
+                spreadsheetRow == that.spreadsheetRow &&
+                Objects.equals(name, that.name) &&
+                Objects.equals(emailAddress, that.emailAddress) &&
+                Objects.equals(domain, that.domain) &&
+                Objects.equals(phoneNumber, that.phoneNumber);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -100,8 +113,8 @@ public final class RecipientDto {
                 Objects.equals(name, that.name) &&
                 Objects.equals(emailAddress, that.emailAddress) &&
                 Objects.equals(domain, that.domain) &&
-                Objects.equals(phoneNumber, that.phoneNumber);
-                // Objects.equals(initialEmailDate, that.initialEmailDate);
+                Objects.equals(phoneNumber, that.phoneNumber) &&
+                Objects.equals(initialEmailDate, that.initialEmailDate);
     }
 
     @Override
