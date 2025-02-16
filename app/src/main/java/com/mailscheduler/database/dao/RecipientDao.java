@@ -80,6 +80,7 @@ public class RecipientDao extends GenericDao<RecipientEntity> {
             return update(UPDATE_RECIPIENT_BY_ID_QUERY,
                     recipient.getName(),
                     recipient.getEmail_address(),
+                    recipient.getSalutation(),
                     recipient.getDomain(),
                     recipient.getPhone_number(),
                     recipient.getInitial_email_date(),
