@@ -97,7 +97,7 @@ public class Main {
         for (String arg : args) {
             switch (arg) {
                 case "--reset", "-r" -> resetProject();
-                case "--clear-database", "c" -> clearDatabase();
+                case "--clear-database", "-c" -> clearDatabase();
                 case "--modify-config", "-m" -> modifyConfiguration();
                 case "--help", "-h" -> displayHelp();
                 case "--sync", "-s" -> synchronizeData();
