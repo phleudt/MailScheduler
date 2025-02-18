@@ -12,24 +12,24 @@ public class TemplateConfiguration {
             "emailAddress", SpreadsheetReference.ofColumn("B"),
             "name", SpreadsheetReference.ofColumn("C"),
             "salutation", SpreadsheetReference.ofColumn("D"),
-            "phoneNumber", SpreadsheetReference.ofColumn("S"),
-            "initialEmailDate", SpreadsheetReference.ofColumn("I")
+            "phoneNumber", SpreadsheetReference.ofColumn("T"),
+            "initialEmailDate", SpreadsheetReference.ofColumn("J")
     );
 
     private static final Map<String, SpreadsheetReference> DEFAULT_MARK_EMAIL_COLUMNS = Map.of(
+            "INITIAL", SpreadsheetReference.ofColumn("K"),
+            "FOLLOW_UP_1", SpreadsheetReference.ofColumn("M"),
+            "FOLLOW_UP_2", SpreadsheetReference.ofColumn("O"),
+            "FOLLOW_UP_3", SpreadsheetReference.ofColumn("Q"),
+            "FOLLOW_UP_4", SpreadsheetReference.ofColumn("S")
+    );
+
+    private static final Map<String, SpreadsheetReference> DEFAULT_MARK_SCHEDULE_COLUMNS = Map.of(
             "INITIAL", SpreadsheetReference.ofColumn("J"),
             "FOLLOW_UP_1", SpreadsheetReference.ofColumn("L"),
             "FOLLOW_UP_2", SpreadsheetReference.ofColumn("N"),
             "FOLLOW_UP_3", SpreadsheetReference.ofColumn("P"),
             "FOLLOW_UP_4", SpreadsheetReference.ofColumn("R")
-    );
-
-    private static final Map<String, SpreadsheetReference> DEFAULT_MARK_SCHEDULE_COLUMNS = Map.of(
-            "INITIAL", SpreadsheetReference.ofColumn("I"),
-            "FOLLOW_UP_1", SpreadsheetReference.ofColumn("K"),
-            "FOLLOW_UP_2", SpreadsheetReference.ofColumn("M"),
-            "FOLLOW_UP_3", SpreadsheetReference.ofColumn("O"),
-            "FOLLOW_UP_4", SpreadsheetReference.ofColumn("Q")
     );
 
     public static Configuration createTemplateConfiguration(String spreadsheetId, boolean saveMode, List<SendingCriterion> sendingCriteria, String defaultSender) {
