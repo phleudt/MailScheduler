@@ -3,6 +3,7 @@ package com.mailscheduler.database.dao;
 import com.mailscheduler.database.DatabaseManager;
 import com.mailscheduler.database.entities.EmailTemplateEntity;
 import com.mailscheduler.exception.dao.EmailTemplateDaoException;
+import com.mailscheduler.model.TemplateCategory;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -27,6 +28,8 @@ public class EmailTemplateDao extends GenericDao<EmailTemplateEntity> {
     private static final String FIND_BY_DRAFT_ID_QUERY = "SELECT * FROM EmailTemplates WHERE draft_id = ?";
     private static final String COUNT_DEFAULT_FOLLOW_UP_TEMPLATES_QUERY = "SELECT COUNT(*) FROM EmailTemplates WHERE template_category = 'DEFAULT_FOLLOW_UP'";
     private static final String GET_SCHEDULE_COUNT_QUERY = "SELECT COUNT(*) FROM FollowUpSchedules WHERE schedule_id = ?";
+    private static final String DELETE_BY_CATEGORY_QUERY = "DELETE FROM EmailTemplates WHERE template_category = ?";
+    private static final String FIND_BY_CATEGORY_QUERY = "SELECT * FROM EmailTemplates WHERE template_category = ?";
 
     /**
      * Constructor for EmailTemplateDao.
@@ -247,7 +250,58 @@ public class EmailTemplateDao extends GenericDao<EmailTemplateEntity> {
         }
     }
 
+    /**
+     * Delete all email templates of a specific category.
+     *
+     * @param category The template category to delete
+     * @throws EmailTemplateDaoException if there's an error during deletion
+     */
+    public void deleteByCategory(TemplateCategory category) throws EmailTemplateDaoException {
+        try {
+            LOGGER.info("Deleting email templates with category: " + category);
+            boolean deleted = delete(DELETE_BY_CATEGORY_QUERY, category.name());
 
+            // Note: We don't throw NotFound exception here because deleting non-existent
+            // templates is considered a success case when clearing a category
+
+        } catch (SQLException e) {
+            throw new EmailTemplateDaoException(
+                    "Error deleting email templates with category: " + category,
+                    e
+            );
+        }
+    }
+
+    /**
+     * Find an email template by its category.
+     * If multiple templates exist for the category, returns the first one found.
+     *
+     * @param category The template category to search for
+     * @return The found EmailTemplateEntity
+     * @throws EmailTemplateDaoException if the template is not found or there's an error
+     */
+    public EmailTemplateEntity findByCategory(TemplateCategory category) throws EmailTemplateDaoException {
+        try {
+            LOGGER.info("Finding email template with category: " + category);
+            EmailTemplateEntity template = executeQueryWithSingleResult(
+                    FIND_BY_CATEGORY_QUERY,
+                    this::mapResultSetToEntity,
+                    category.name()
+            );
+
+            if (template == null) {
+                throw new EmailTemplateDaoException.NotFound(
+                        "Email template not found for category: " + category
+                );
+            }
+            return template;
+        } catch (SQLException e) {
+            throw new EmailTemplateDaoException(
+                    "Error finding email template with category: " + category,
+                    e
+            );
+        }
+    }
 
     /**
      * Counts the number of default follow-up templates.

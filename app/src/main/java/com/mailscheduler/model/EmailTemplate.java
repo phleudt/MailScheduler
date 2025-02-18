@@ -4,9 +4,11 @@ import com.mailscheduler.exception.validation.InvalidTemplateException;
 import com.mailscheduler.exception.PlaceholderException;
 import com.mailscheduler.util.TemplateUtils;
 
+import java.util.HashMap;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.Map;
 
 public class EmailTemplate {
     private static final Logger LOGGER = Logger.getLogger(EmailTemplate.class.getName());
@@ -18,6 +20,7 @@ public class EmailTemplate {
     private PlaceholderManager placeholderManager;
     private int followupNumber;
     private String draftId;
+    private Map<String, byte[]> inlineImages;
 
     private EmailTemplate(Builder builder) {
         this.id = builder.id;
@@ -28,6 +31,7 @@ public class EmailTemplate {
         this.placeholderManager = builder.placeholderManager;
         this.followupNumber = builder.followupNumber;
         this.draftId = builder.draftId;
+        this.inlineImages = builder.inlineImages;
     }
 
     // Getter and Setter
@@ -93,6 +97,10 @@ public class EmailTemplate {
 
     public void setDraftId(String draftId) {
         this.draftId = draftId;
+    }
+
+    public Map<String, byte[]> getInlineImages() {
+        return inlineImages;
     }
 
     private void validate() throws InvalidTemplateException {
@@ -172,6 +180,7 @@ public class EmailTemplate {
         private PlaceholderManager placeholderManager;
         private int followupNumber;
         private String draftId;
+        private Map<String, byte[]> inlineImages = new HashMap<>();
 
         public Builder setId(int id) {
             this.id = id;
@@ -215,6 +224,11 @@ public class EmailTemplate {
 
         public Builder setDraftId(String draftId) {
             this.draftId = draftId;
+            return this;
+        }
+
+        public Builder setInlineImages(Map<String, byte[]> inlineImages) {
+            this.inlineImages = inlineImages;
             return this;
         }
 

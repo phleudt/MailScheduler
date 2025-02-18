@@ -77,13 +77,25 @@ public class GmailService extends GoogleAuthService<Gmail> {
         return thread.getMessages().size() > minimumReplyCount;
     }
 
+    public Draft getDraft(String draftId) throws IOException {
+        return gmailService.users().drafts().get("me", draftId).execute();
+    }
+
     public List<Draft> getDrafts() throws IOException {
         ListDraftsResponse listDraftsResponse = gmailService.users().drafts().list("me").execute();
         return listDraftsResponse.getDrafts();
     }
 
     public Message getDraftAsMessage(Draft draft) throws IOException {
-        return gmailService.users().drafts().get("me", draft.getId()).execute().getMessage();
+        if (draft == null) {
+            throw new IllegalArgumentException("Draft cannot be null");
+        }
+
+        String messageId = draft.getMessage().getId();
+        return gmailService.users().messages()
+                .get("me", messageId)
+                .setFormat("raw")
+                .execute();
     }
 
     public Message sendEmail(Message message) throws IOException {

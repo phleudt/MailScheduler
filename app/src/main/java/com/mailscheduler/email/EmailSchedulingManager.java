@@ -181,7 +181,7 @@ public class EmailSchedulingManager {
         // Retrieve data from cells and add them to the updated placeholder manager
         List<String> values;
         try {
-            if (cellsToRetrieveValuesFrom.size() != 0) {
+            if (!cellsToRetrieveValuesFrom.isEmpty()) {
                 values = spreadsheetService.readSpreadsheetBatch(cellsToRetrieveValuesFrom);
                 int index = 0;
                 for (Map.Entry<String, PlaceholderManager.PlaceholderValue> entry : manager.getAllPlaceholders().entrySet()) {
@@ -204,9 +204,12 @@ public class EmailSchedulingManager {
         ZonedDateTime initialEmailDate = recipient.getInitialEmailDate();
         EmailTemplate template = templateManager.getDefaultInitialEmailTemplate();
         try {
-            template.setPlaceholderManager(
-                    resolveSpreadsheetReference(template.getPlaceholderManager(), SpreadsheetReference.ofRow(recipient.getSpreadsheetRow()))
+            // Resolve spreadsheet placeholders
+            PlaceholderManager resolvedPlaceholders = resolveSpreadsheetReference(
+                    template.getPlaceholderManager(),
+                    SpreadsheetReference.ofRow(recipient.getSpreadsheetRow())
             );
+            template.setPlaceholderManager(resolvedPlaceholders);
 
             return new Email.Builder()
                     .setSender(defaultSenderEmail)

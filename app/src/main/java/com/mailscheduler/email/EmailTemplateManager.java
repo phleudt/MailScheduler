@@ -16,6 +16,7 @@ import com.mailscheduler.service.AbstractUserConsoleInteractionService;
 import com.mailscheduler.util.TemplateUtils;
 import com.mailscheduler.model.SpreadsheetReference;
 
+import javax.mail.MessagingException;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.*;
@@ -144,7 +145,6 @@ public class EmailTemplateManager {
         return followUpTemplates;
     }
 
-
     /**
      * Updates templates with placeholder replacements.
      *
@@ -217,8 +217,17 @@ public class EmailTemplateManager {
         }
 
         Message message = gmailService.getDraftAsMessage(draft);
+
+        // Process the MIME message to extract HTML and images
+        MimeMessageProcessor processor = new MimeMessageProcessor();
+        try {
+            processor.processMessage(message);
+        } catch (MessagingException e) {
+            throw new EmailTemplateManagerException("Failed to process MIME message", e);
+        }
+
         String subject = TemplateUtils.extractSubject(message);
-        String body = TemplateUtils.extractBody(message);
+        String body = processor.getHtmlContent(); // Use the HTML content from processor
 
         Set<String> subjectKeys = TemplateUtils.extractKeys(new char[] {'{', '}'}, subject);
         Set<String> bodyKeys = TemplateUtils.extractKeys(new char[] {'{', '}'}, body);
@@ -239,6 +248,7 @@ public class EmailTemplateManager {
                 .setPlaceholderManager(placeholderManager)
                 .setFollowupNumber(followupNumber)
                 .setDraftId(draft.getId())
+                .setInlineImages(processor.getInlineImages()) // Add the inline images
                 .build();
     }
 
@@ -291,7 +301,6 @@ public class EmailTemplateManager {
         }
     }
 
-
     public static class UserTemplateSelection {
         private final int initialTemplateIndex;
         private final List<Integer> followUpTemplateIndices;
@@ -321,7 +330,7 @@ class TemplateSelectionService extends AbstractUserConsoleInteractionService {
     public EmailTemplateManager.UserTemplateSelection getUserTemplateSelection(List<Draft> drafts, int numberOfFollowUps) {
         displayDrafts(drafts);
 
-        int initialTemplateIndex = getInitialTemplateIndex(drafts.size());
+        int initialTemplateIndex = getSingleTemplateIndex(drafts.size(), "Enter the number of the draft you want to use as the initial email templates:");
         List<Integer> followUpTemplateIndices = getFollowUpTemplateIndices(drafts.size(), numberOfFollowUps);
 
         return new EmailTemplateManager.UserTemplateSelection(initialTemplateIndex, followUpTemplateIndices);
@@ -425,9 +434,9 @@ class TemplateSelectionService extends AbstractUserConsoleInteractionService {
         System.out.println("\n");
     }
 
-    private int getInitialTemplateIndex(int numberOfDrafts) {
+    private int getSingleTemplateIndex(int numberOfDrafts, String prompt) {
         return getValidatedIntegerInput(
-                "Enter the number of the draft you want to use as the initial email templates:",
+                prompt,
                 numberOfDrafts) - 1;
     }
 
@@ -466,7 +475,7 @@ class TemplateSelectionService extends AbstractUserConsoleInteractionService {
     public void displaySelectedTemplates(EmailTemplate initialTemplate, List<EmailTemplate> followUpTemplates) {
         System.out.println("Initial Template:");
         System.out.println("Subject: " + initialTemplate.getSubjectTemplate());
-        System.out.println("Body: " + initialTemplate.getSubjectTemplate());
+        System.out.println("Body: " + initialTemplate.getBodyTemplate());
 
         int count = 1;
         System.out.println("Follow-Up Templates: ");
