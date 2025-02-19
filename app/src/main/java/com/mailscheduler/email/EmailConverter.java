@@ -2,6 +2,7 @@ package com.mailscheduler.email;
 
 import com.google.api.services.gmail.model.Message;
 import com.mailscheduler.model.Email;
+import com.mailscheduler.util.LoomLinkConverter;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -31,17 +32,20 @@ public class EmailConverter {
             mimeMessage.addRecipient(javax.mail.Message.RecipientType.TO, new InternetAddress(email.getRecipientEmail()));
             mimeMessage.setSubject(email.getSubject());
 
+            // Process the body content to handle Loom embeds
+            String processedBody = LoomLinkConverter.processEmailContent(email.getBody());
+
             // Create multipart message
             Multipart multipart = new MimeMultipart("alternative");
 
-            // Add plain text part
+            // Add plain text part (strip HTML and Loom embeds)
             MimeBodyPart textPart = new MimeBodyPart();
-            textPart.setText(stripHtml(email.getBody()), "utf-8");
+            textPart.setText(stripHtml(processedBody), "utf-8");
             multipart.addBodyPart(textPart);
 
-            // Add HTML part
+            // Add HTML part with processed Loom embeds
             MimeBodyPart htmlPart = new MimeBodyPart();
-            htmlPart.setContent(email.getBody(), "text/html; charset=utf-8");
+            htmlPart.setContent(processedBody, "text/html; charset=utf-8");
             multipart.addBodyPart(htmlPart);
 
             // Add attachments if any
