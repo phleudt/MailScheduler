@@ -304,10 +304,19 @@ public class EmailService {
             List<RecipientDto> recipients
     ) throws EmailNotScheduledException {
         try {
-            List<SpreadsheetReference> cellIndicesContainingEmailAddresses = spreadsheetService.markEmailsAsScheduled(emailAddressColumn, result.initialEmails(), getInitialEmailColumnToMark());
+            List<SpreadsheetReference> cellIndicesContainingEmailAddresses = spreadsheetService.markEmailsAsScheduled(
+                    emailAddressColumn, result.initialEmails(), getInitialEmailColumnToMark());
+
+            Set<String> initialEmailAddresses = result.initialEmails().stream()
+                    .map(Email::getRecipientEmail)
+                    .collect(Collectors.toSet());
+
+            // Filter schedules to only include recipients that have initial emails
             List<String> schedules = recipients.stream()
+                    .filter(recipient -> initialEmailAddresses.contains(recipient.getEmailAddress()))
                     .map(RecipientDto::getInitialEmailDateAsString)
                     .toList();
+
             spreadsheetService.markSchedule(cellIndicesContainingEmailAddresses, getInitialScheduleColumnToMark(), schedules);
         } catch (SpreadsheetOperationException e) {
             LOGGER.severe("Failed to mark initial emails as scheduled: " + e.getMessage());
