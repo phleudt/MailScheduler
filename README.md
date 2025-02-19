@@ -35,7 +35,7 @@ MailScheduler helps you automate your email communications by providing:
 ## Installation
 
 ### Prerequisites
-- Java 11 or higher
+- Java 17 or higher
 - Gradle build tool
 - Google Cloud Platform account
 - Google API credentials
