@@ -2,7 +2,7 @@ package com.mailscheduler.email;
 
 import com.google.api.services.gmail.model.Message;
 import com.mailscheduler.exception.validation.EmailNotSentException;
-import com.mailscheduler.google.GmailService;
+import com.mailscheduler.google.gmail.GmailService;
 import com.mailscheduler.model.Email;
 import com.mailscheduler.model.SendStatus;
 

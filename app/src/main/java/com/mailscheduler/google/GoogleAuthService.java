@@ -8,6 +8,9 @@ import com.google.api.client.http.javanet.NetHttpTransport;
 import com.google.api.client.json.JsonFactory;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.client.util.store.FileDataStoreFactory;
+import com.mailscheduler.google.auth.exceptions.MalformedRefreshTokenException;
+import com.mailscheduler.google.auth.exceptions.MissingRefreshTokenException;
+import com.mailscheduler.google.auth.exceptions.NoInternetConnectionException;
 
 import java.io.*;
 import java.net.InetSocketAddress;
@@ -15,10 +18,11 @@ import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
-abstract class GoogleAuthService<T> {
+public abstract class GoogleAuthService<T> {
     protected static final String APPLICATION_NAME = "com/mailscheduler";
     protected static final JsonFactory JSON_FACTORY = GsonFactory.getDefaultInstance();
     private static final String TOKENS_DIRECTORY_PATH = "tokens";
+    private static final String TOKENS_FILE_NAME = "refresh_tokens.txt";
     private static final String CREDENTIALS_FILE_PATH = "/googleClientSecrets.json";
     protected static NetHttpTransport HTTP_TRANSPORT;
 
@@ -54,7 +58,8 @@ abstract class GoogleAuthService<T> {
         }
     }
 
-    private void authorizeWithRetry() throws IOException, MissingRefreshTokenException, MalformedRefreshTokenException {
+    private void authorizeWithRetry()
+            throws IOException, MissingRefreshTokenException, MalformedRefreshTokenException {
         String refreshToken = loadRefreshToken();
 
         if (refreshToken == null) {
@@ -69,6 +74,25 @@ abstract class GoogleAuthService<T> {
         }
     }
 
+    private String loadRefreshToken() {
+        String className = getClass().getSimpleName();
+        File tokenFile = ensureTokenFile();
+
+        if (tokenFile != null) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(tokenFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (line.startsWith(className + ":")) {
+                        return line.substring(className.length() + 1);
+                    }
+                }
+            } catch (IOException e) {
+                System.out.println("Error reading refresh token: " + e.getMessage());
+            }
+        }
+        return null;
+    }
+
     private void handleTokenException(TokenResponseException e) throws IOException {
         if (e.getDetails() != null && "invalid_grant".equals(e.getDetails().getError())) {
             System.out.println("Refresh token has expired. Prompting user to authorize the application...");
@@ -76,7 +100,7 @@ abstract class GoogleAuthService<T> {
         } else {
             System.out.println("Error during authorization with retry: " + e.getMessage());
             if (e.getDetails() != null) {
-                System.out.println("Error details: " + e.getDetails().toString());
+                System.out.println("Error details: " + e.getDetails());
             }
             if ("invalid_grant".equals(e.getDetails().getError())) {
                 System.out.println("Refresh token has expired. Prompting user to authorize the application...");
@@ -127,14 +151,16 @@ abstract class GoogleAuthService<T> {
         initializeService(credential);
     }
 
-    private String authorizeApplication() throws MissingRefreshTokenException, IOException, MalformedRefreshTokenException {
+    private String authorizeApplication()
+            throws MissingRefreshTokenException, IOException, MalformedRefreshTokenException {
         Credential credential = getCredentials();
         String newRefreshToken = credential.getRefreshToken();
         updateRefreshTokenFile(newRefreshToken);
         return newRefreshToken;
     }
 
-    private Credential getCredentials() throws MissingRefreshTokenException, IOException, MalformedRefreshTokenException {
+    private Credential getCredentials()
+            throws MissingRefreshTokenException, IOException, MalformedRefreshTokenException {
         GoogleClientSecrets clientSecrets = getGoogleClientSecrets();
 
         GoogleAuthorizationCodeFlow flow = new GoogleAuthorizationCodeFlow.Builder(
@@ -152,7 +178,7 @@ abstract class GoogleAuthService<T> {
         return performTokenRequest(flow, clientSecrets);
     }
 
-    private static Credential performTokenRequest(GoogleAuthorizationCodeFlow flow, GoogleClientSecrets clientSecrets)
+    private Credential performTokenRequest(GoogleAuthorizationCodeFlow flow, GoogleClientSecrets clientSecrets)
         throws IOException, MalformedRefreshTokenException, MissingRefreshTokenException {
         String code = readAuthorizationCode();
 
@@ -166,7 +192,7 @@ abstract class GoogleAuthService<T> {
         }
     }
 
-    private static String readAuthorizationCode() {
+    private String readAuthorizationCode() {
         System.out.println("Enter authorization code: ");
         try {
             return new BufferedReader(new InputStreamReader(System.in)).readLine();
@@ -175,7 +201,7 @@ abstract class GoogleAuthService<T> {
         }
     }
 
-    private static GoogleClientSecrets getGoogleClientSecrets() throws IOException {
+    private GoogleClientSecrets getGoogleClientSecrets() throws IOException {
         // Load client secrets
         InputStream in = GoogleAuthService.class.getResourceAsStream(CREDENTIALS_FILE_PATH);
         if (in == null) {
@@ -184,7 +210,8 @@ abstract class GoogleAuthService<T> {
         return GoogleClientSecrets.load(JSON_FACTORY, new InputStreamReader(in));
     }
 
-    private static TokenResponseException handleTokenResponseException(TokenResponseException e) throws MalformedRefreshTokenException, MissingRefreshTokenException {
+    private TokenResponseException handleTokenResponseException(TokenResponseException e)
+            throws MalformedRefreshTokenException, MissingRefreshTokenException {
         if (e.getDetails().getError().equals("invalid_grant")) {
             throw new MalformedRefreshTokenException("Malformed refresh token. Prompting user to authorize the application again.");
         } else if (e.getDetails().getError().equals("invalid_request")) {
@@ -240,31 +267,9 @@ abstract class GoogleAuthService<T> {
         }
     }
 
-    private String loadRefreshToken() {
-        String className = getClass().getSimpleName();
-        File tokenFile = ensureTokenFile();
-
-        if (tokenFile == null) {
-            System.out.println("Cannot load refresh token");
-            return null;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(tokenFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                if (line.startsWith(className + ":")) {
-                    return line.substring(className.length() + 1);
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error reading refresh token: " + e.getMessage());
-        }
-        return null;
-    }
-
     private File ensureTokenFile() {
-        File tokensDir = new File("tokens");
-        File tokenFile = new File(tokensDir, "refresh_tokens.txt");
+        File tokensDir = new File(TOKENS_DIRECTORY_PATH);
+        File tokenFile = new File(tokensDir, TOKENS_FILE_NAME);
 
         try {
             // Create tokens directory if it doesn't exist
@@ -292,22 +297,4 @@ abstract class GoogleAuthService<T> {
         }
     }
 
-    // Exception classes
-    public static class MissingRefreshTokenException extends Exception {
-        public MissingRefreshTokenException(String message) {
-            super(message);
-        }
-    }
-
-    public static class MalformedRefreshTokenException extends Exception {
-        public MalformedRefreshTokenException(String message) {
-            super(message);
-        }
-    }
-
-    public static class NoInternetConnectionException extends Exception {
-        public NoInternetConnectionException(String message) {
-            super(message);
-        }
-    }
 }

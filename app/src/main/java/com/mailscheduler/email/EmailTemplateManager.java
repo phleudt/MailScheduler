@@ -7,7 +7,7 @@ import com.mailscheduler.database.entities.EmailTemplateEntity;
 import com.mailscheduler.exception.*;
 import com.mailscheduler.exception.dao.EmailTemplateDaoException;
 import com.mailscheduler.exception.validation.InvalidTemplateException;
-import com.mailscheduler.google.GmailService;
+import com.mailscheduler.google.gmail.GmailService;
 import com.mailscheduler.mapper.EntityMapper;
 import com.mailscheduler.model.EmailTemplate;
 import com.mailscheduler.model.PlaceholderManager;
@@ -269,18 +269,19 @@ public class EmailTemplateManager {
 
                 if (templateEntity != null) {
                     EmailTemplate existingTemplate = EntityMapper.toEmailTemplate(templateEntity);
-                    String subject = TemplateUtils.extractSubject(message);
-                    String body = TemplateUtils.extractBody(message);
+                    String newSubject = TemplateUtils.extractSubject(message);
+                    String newBody = TemplateUtils.extractBody(message);
 
-                    boolean isSubjectDifferent = !existingTemplate.getSubjectTemplate().equals(subject);
-                    boolean isBodyDifferent = !existingTemplate.getBodyTemplate().equals(body);
+                    boolean isSubjectDifferent = !existingTemplate.getSubjectTemplate().equals(newSubject);
+                    boolean isBodyDifferent = !existingTemplate.getBodyTemplate().equals(newBody);
 
                     if (isSubjectDifferent || isBodyDifferent) {
-                        boolean updateTemplate = templateSelectionService.promptUserForTemplateUpdate(existingTemplate, subject, body);
+                        boolean updateTemplate = templateSelectionService.promptUserForTemplateUpdate(existingTemplate, newSubject, newBody);
 
                         if (updateTemplate) {
-                            existingTemplate.setSubjectTemplate(subject);
-                            existingTemplate.setBodyTemplate(body);
+                            existingTemplate.setSubjectTemplate(newSubject);
+                            existingTemplate.setBodyTemplate(newBody);
+                            existingTemplate.setDraftId(draftId);
 
                             emailTemplateDao.updateEmailTemplateById(
                                     existingTemplate.getId(),
@@ -349,7 +350,7 @@ class TemplateSelectionService extends AbstractUserConsoleInteractionService {
 
         System.out.println("Do you want to update the template? (yes/no): ");
         String userInput = scanner.nextLine();
-        return "yes".equalsIgnoreCase(userInput);
+        return "yes".equalsIgnoreCase(userInput) || "y".equalsIgnoreCase(userInput);
     }
 
     public PlaceholderManager getUserPlaceholderReplacements(EmailTemplate initialTemplate, List<EmailTemplate> followUpTemplates) {

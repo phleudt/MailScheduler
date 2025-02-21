@@ -17,7 +17,7 @@ import com.mailscheduler.exception.service.EmailServiceException;
 import com.mailscheduler.exception.service.EmailValidationException;
 import com.mailscheduler.exception.validation.EmailNotScheduledException;
 import com.mailscheduler.exception.validation.EmailNotSentException;
-import com.mailscheduler.google.GmailService;
+import com.mailscheduler.google.gmail.GmailService;
 import com.mailscheduler.mapper.EntityMapper;
 import com.mailscheduler.model.Email;
 import com.mailscheduler.model.EmailCategory;

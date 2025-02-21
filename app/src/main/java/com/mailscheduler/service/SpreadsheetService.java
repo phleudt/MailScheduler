@@ -3,7 +3,7 @@ package com.mailscheduler.service;
 import com.google.api.services.sheets.v4.model.ValueRange;
 import com.mailscheduler.config.Configuration;
 import com.mailscheduler.exception.SpreadsheetOperationException;
-import com.mailscheduler.google.GoogleSheetService;
+import com.mailscheduler.google.sheet.GoogleSheetService;
 import com.mailscheduler.model.*;
 import com.mailscheduler.util.TimeUtils;
 

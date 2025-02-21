@@ -1,16 +1,15 @@
-package com.mailscheduler.google;
+package com.mailscheduler.google.gmail;
 
 import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.*;
 import com.google.api.services.gmail.model.Thread;
+import com.mailscheduler.google.GoogleAuthService;
 
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 public class GmailService extends GoogleAuthService<Gmail> {
     private static volatile GmailService instance;

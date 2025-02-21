@@ -9,8 +9,8 @@ import com.mailscheduler.dto.EmailDto;
 import com.mailscheduler.dto.RecipientDto;
 import com.mailscheduler.email.EmailTemplateManager;
 import com.mailscheduler.exception.service.RecipientServiceException;
-import com.mailscheduler.google.GmailService;
-import com.mailscheduler.google.GoogleSheetService;
+import com.mailscheduler.google.gmail.GmailService;
+import com.mailscheduler.google.sheet.GoogleSheetService;
 import com.mailscheduler.model.Email;
 import com.mailscheduler.service.*;
 import org.slf4j.Logger;
@@ -55,7 +55,7 @@ public class Main {
 
     private void initialize() throws Exception {
         // Initialize configuration
-        Path configPath = Path.of("./config.properties");
+        Path configPath = Path.of("./config.properties"); // TODO: Place file in config, should work when running normally and as jar
         this.configurationService = new ConfigurationService(configPath);
         this.configuration = configurationService.loadConfiguration();
 
@@ -221,7 +221,7 @@ public class Main {
         Path credentialsPath = Path.of("./tokens/StoredCredential");
         Files.deleteIfExists(credentialsPath);
 
-        // If there are other credential or token files, delete them here
+        // If there are other credential or token files, delete them
         Path googleTokensDir = Path.of("./tokens");
         if (Files.exists(googleTokensDir)) {
             try (DirectoryStream<Path> stream = Files.newDirectoryStream(googleTokensDir)) {
