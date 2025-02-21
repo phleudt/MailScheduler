@@ -55,7 +55,7 @@ public class Main {
 
     private void initialize() throws Exception {
         // Initialize configuration
-        Path configPath = Path.of("./config.properties"); // TODO: Place file in config, should work when running normally and as jar
+        Path configPath = Path.of("./config.properties");
         this.configurationService = new ConfigurationService(configPath);
         this.configuration = configurationService.loadConfiguration();
 
