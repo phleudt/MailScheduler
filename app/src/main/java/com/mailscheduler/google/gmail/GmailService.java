@@ -5,7 +5,7 @@ import com.google.api.services.gmail.Gmail;
 import com.google.api.services.gmail.GmailScopes;
 import com.google.api.services.gmail.model.*;
 import com.google.api.services.gmail.model.Thread;
-import com.mailscheduler.google.GoogleAuthService;
+import com.mailscheduler.google.auth.GoogleAuthService;
 
 import java.io.IOException;
 import java.util.Collections;

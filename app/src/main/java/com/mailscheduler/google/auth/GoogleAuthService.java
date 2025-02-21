@@ -1,4 +1,4 @@
-package com.mailscheduler.google;
+package com.mailscheduler.google.auth;
 
 import com.google.api.client.auth.oauth2.*;
 import com.google.api.client.googleapis.auth.oauth2.*;

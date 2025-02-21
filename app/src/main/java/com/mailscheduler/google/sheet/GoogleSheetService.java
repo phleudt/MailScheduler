@@ -4,7 +4,7 @@ import com.google.api.client.auth.oauth2.Credential;
 import com.google.api.services.sheets.v4.Sheets;
 import com.google.api.services.sheets.v4.SheetsScopes;
 import com.google.api.services.sheets.v4.model.*;
-import com.mailscheduler.google.GoogleAuthService;
+import com.mailscheduler.google.auth.GoogleAuthService;
 import com.mailscheduler.model.SpreadsheetReference;
 
 import java.io.IOException;
