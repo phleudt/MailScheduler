@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class TemplateConfiguration {
-    private static final Map<String, SpreadsheetReference> DEFAULT_CONTACT_COLUMNS = Map.of(
+    private static final Map<String, SpreadsheetReference> DEFAULT_RECIPIENT_COLUMNS = Map.of(
             "domain", SpreadsheetReference.ofColumn("A"),
             "emailAddress", SpreadsheetReference.ofColumn("B"),
             "name", SpreadsheetReference.ofColumn("C"),
@@ -34,7 +34,7 @@ public class TemplateConfiguration {
 
     public static Configuration createTemplateConfiguration(String spreadsheetId, boolean saveMode, List<SendingCriterion> sendingCriteria, String defaultSender) {
         return new Configuration.Builder()
-                .contactColumns(new HashMap<>(DEFAULT_CONTACT_COLUMNS))
+                .recipientColumns(new HashMap<>(DEFAULT_RECIPIENT_COLUMNS))
                 .markEmailColumns(new HashMap<>(DEFAULT_MARK_EMAIL_COLUMNS))
                 .markSchedulesForEmailColumns(new HashMap<>(DEFAULT_MARK_SCHEDULE_COLUMNS))
                 .spreadsheetId(spreadsheetId)

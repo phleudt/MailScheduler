@@ -8,7 +8,6 @@ import com.mailscheduler.service.EmailValidationService;
 import com.mailscheduler.service.SpreadsheetService;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.util.*;
 
 public class ConfigurationInitializationService extends AbstractUserConsoleInteractionService {
@@ -77,7 +76,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
         String defaultSender = configureDefaultSender();
 
         // Column Configurations
-        Map<String, SpreadsheetReference> contactColumns = configureContactColumns();
+        Map<String, SpreadsheetReference> recipientColumns = configureRecipientColumns();
         Map<String, SpreadsheetReference> markEmailColumns = configureMarkEmailColumns(numberOfFollowUps);
         Map<String, SpreadsheetReference> markScheduleForEmailColumns = configureMarkScheduleEmailColumns(numberOfFollowUps);
 
@@ -85,7 +84,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
 
         // Create Configuration
         Configuration configuration = new Configuration(
-                contactColumns,
+                recipientColumns,
                 markEmailColumns,
                 markScheduleForEmailColumns,
                 spreadsheetId,
@@ -106,8 +105,8 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
         System.out.println("Number of Follow-ups: " + config.getNumberOfFollowUps());
         System.out.println("Save Mode: " + config.isSaveMode());
 
-        System.out.println("\nContact Columns:");
-        config.getContactColumns().forEach((key, value) ->
+        System.out.println("\nRecipient Columns:");
+        config.getRecipientColumns().forEach((key, value) ->
                 System.out.println("  " + key + ": Column " + value.getReference())
         );
 
@@ -202,15 +201,15 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
     }
 
     /**
-     * Configures contact columns through user interaction
+     * Configures recipient columns through user interaction
      *
-     * @return Map of configured contact columns
+     * @return Map of configured recipient columns
      */
-    private Map<String, SpreadsheetReference> configureContactColumns() {
-        System.out.println("\nConfiguring Contact Columns:");
-        Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
+    private Map<String, SpreadsheetReference> configureRecipientColumns() {
+        System.out.println("\nConfiguring recipient Columns:");
+        Map<String, SpreadsheetReference> recipientColumns = new HashMap<>();
 
-        String[] contactColumnKeys = {
+        String[] recipientColumnKeys = {
                 "domain", "emailAddress", "name", "salutation", "phoneNumber", "initialEmailDate"
         };
 
@@ -218,16 +217,16 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
                 "A", "B", "C", "D", "S", "I"
         };
 
-        for (int i = 0; i < contactColumnKeys.length; i++) {
-            String key = contactColumnKeys[i];
+        for (int i = 0; i < recipientColumnKeys.length; i++) {
+            String key = recipientColumnKeys[i];
             String exampleColumn = exampleColumns[i];
             SpreadsheetReference column = configureSpreadsheetReference(
                     "Enter column letter for " + key + " (e.g., " + exampleColumn + "):"
             );
-            contactColumns.put(key, column);
+            recipientColumns.put(key, column);
         }
 
-        return contactColumns;
+        return recipientColumns;
     }
 
     /**
@@ -400,7 +399,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
         List<String> modificationOptions = List.of(
                 "Save Mode",
                 "Spreadsheet ID",
-                "Contact Columns",
+                "Recipient Columns",
                 "Mark Email Columns",
                 "Mark Schedule Email Columns",
                 "Number of follow-ups",
@@ -419,7 +418,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 0 -> {
                 boolean newSaveMode = configureSaveMode();
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         existingConfiguration.getMarkEmailColumns(),
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         existingConfiguration.getSpreadsheetId(),
@@ -432,7 +431,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 1 -> {
                 String newSpreadsheetId = configureSpreadsheetId();
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         existingConfiguration.getMarkEmailColumns(),
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         newSpreadsheetId,
@@ -443,9 +442,9 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
                 );
             }
             case 2 -> {
-                Map<String, SpreadsheetReference> newContactColumns = configureContactColumns();
+                Map<String, SpreadsheetReference> newRecipientColumns = configureRecipientColumns();
                 yield new Configuration(
-                        newContactColumns,
+                        newRecipientColumns,
                         existingConfiguration.getMarkEmailColumns(),
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         existingConfiguration.getSpreadsheetId(),
@@ -458,7 +457,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 3 -> {
                 Map<String, SpreadsheetReference> newMarkEmailColumns = configureMarkEmailColumns(existingConfiguration.getNumberOfFollowUps());
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         newMarkEmailColumns,
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         existingConfiguration.getSpreadsheetId(),
@@ -471,7 +470,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 4 -> {
                 Map<String, SpreadsheetReference> newMarkScheduleColumns = configureMarkScheduleEmailColumns(existingConfiguration.getNumberOfFollowUps());
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         existingConfiguration.getMarkEmailColumns(),
                         newMarkScheduleColumns,
                         existingConfiguration.getSpreadsheetId(),
@@ -488,7 +487,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 6 -> {
                 List<SendingCriterion> newSendingCriteria = configureSendingCriteria();
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         existingConfiguration.getMarkEmailColumns(),
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         existingConfiguration.getSpreadsheetId(),
@@ -501,7 +500,7 @@ public class ConfigurationInitializationService extends AbstractUserConsoleInter
             case 7 -> {
                 String newDefaultSender = configureDefaultSender();
                 yield new Configuration(
-                        existingConfiguration.getContactColumns(),
+                        existingConfiguration.getRecipientColumns(),
                         existingConfiguration.getMarkEmailColumns(),
                         existingConfiguration.getMarkSchedulesForEmailColumns(),
                         existingConfiguration.getSpreadsheetId(),

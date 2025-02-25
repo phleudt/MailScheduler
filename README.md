@@ -73,7 +73,7 @@ MailScheduler helps you automate your email communications by providing:
 The application uses a `config.properties` file for configuration. Key settings include:
 - Default sender email
 - Spreadsheet IDs
-- Contact column mappings
+- Recipient column mappings
 - Email template settings
 
 ## Spreadsheet Template
@@ -87,7 +87,7 @@ For the fastest setup, use our pre-configured spreadsheet template:
 ### Template Structure
 The template is pre-configured with the following columns:
 
-#### Contact Information (Columns A-F)
+#### Recipient Information (Columns A-F)
 - A: Domain
 - B: Email Address
 - C: Name

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 
 public class Configuration {
-    private final Map<String, SpreadsheetReference> contactColumns;
+    private final Map<String, SpreadsheetReference> recipientColumns;
     private final Map<String, SpreadsheetReference> markEmailColumns;
     private final Map<String, SpreadsheetReference> markSchedulesForEmailColumns;
     private final String spreadsheetId;
@@ -17,7 +17,7 @@ public class Configuration {
     private final String defaultSender;
 
     public Configuration(
-            Map<String, SpreadsheetReference> contactColumns,
+            Map<String, SpreadsheetReference> recipientColumns,
             Map<String, SpreadsheetReference> markEmailColumns,
             Map<String, SpreadsheetReference> markSchedulesForEmailColumns,
             String spreadsheetId,
@@ -26,7 +26,7 @@ public class Configuration {
             List<SendingCriterion> sendingCriteria,
             String defaultSender
     ) {
-        this.contactColumns = contactColumns;
+        this.recipientColumns = recipientColumns;
         this.markEmailColumns = markEmailColumns;
         this.markSchedulesForEmailColumns = markSchedulesForEmailColumns;
         this.spreadsheetId = spreadsheetId;
@@ -36,8 +36,8 @@ public class Configuration {
         this.defaultSender = defaultSender;
     }
 
-    public Map<String, SpreadsheetReference> getContactColumns() {
-        return contactColumns;
+    public Map<String, SpreadsheetReference> getRecipientColumns() {
+        return recipientColumns;
     }
 
     public Map<String, SpreadsheetReference> getMarkEmailColumns() {
@@ -77,7 +77,7 @@ public class Configuration {
     }
 
     public static class Builder {
-        private Map<String, SpreadsheetReference> contactColumns;
+        private Map<String, SpreadsheetReference> recipientColumns;
         private Map<String, SpreadsheetReference> markEmailColumns;
         private Map<String, SpreadsheetReference> markSchedulesForEmailColumns;
         private String spreadsheetId;
@@ -86,8 +86,8 @@ public class Configuration {
         private List<SendingCriterion> sendingCriteria = new ArrayList<>();
         private String defaultSender;
 
-        public Builder contactColumns(Map<String, SpreadsheetReference> contactColumns) {
-            this.contactColumns = contactColumns;
+        public Builder recipientColumns(Map<String, SpreadsheetReference> recipientColumns) {
+            this.recipientColumns = recipientColumns;
             return this;
         }
 
@@ -133,7 +133,7 @@ public class Configuration {
 
         public Configuration build() {
             return new Configuration(
-                    contactColumns,
+                    recipientColumns,
                     markEmailColumns,
                     markSchedulesForEmailColumns,
                     spreadsheetId,

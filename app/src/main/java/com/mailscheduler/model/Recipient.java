@@ -7,7 +7,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Contact {
+public class Recipient {
     private String name;
     private String emailAddress;
     private String salutation;
@@ -17,7 +17,7 @@ public class Contact {
     private boolean hasReplied;
     private int spreadsheetRow;
 
-    private Contact(Builder builder) {
+    private Recipient(Builder builder) {
         this.name = builder.name;
         this.emailAddress = builder.emailAddress;
         this.salutation = builder.salutation;
@@ -28,16 +28,16 @@ public class Contact {
         this.spreadsheetRow = builder.spreadsheetRow;
     }
 
-    public static List<Contact> buildContactsFromColumns(List<ValueRange> valueRanges, int rowCount) {
-        List<Contact> contacts = new ArrayList<>(rowCount);
+    public static List<Recipient> buildRecipientFromColumns(List<ValueRange> valueRanges, int rowCount) {
+        List<Recipient> recipients = new ArrayList<>(rowCount);
         for (int index = 0; index < rowCount; index++) {
             List<String> rowValues = getRowFromColumns(valueRanges, index);
             if (!isEmptyRow(rowValues)) {
                 int rowIndex = getRowIndexFromValueRange(valueRanges, index);
-                contacts.add(buildContactFromList(rowValues, rowIndex));
+                recipients.add(buildRecipientFromList(rowValues, rowIndex));
             }
         }
-        return contacts;
+        return recipients;
     }
 
     private static int getRowIndexFromValueRange(List<ValueRange> valueRanges, int index) {
@@ -81,8 +81,8 @@ public class Contact {
         return rowValues;
     }
 
-    private static Contact buildContactFromList(List<String> attributes, int spreadsheetRow) {
-        Contact.Builder builder = new Contact.Builder();
+    private static Recipient buildRecipientFromList(List<String> attributes, int spreadsheetRow) {
+        Recipient.Builder builder = new Recipient.Builder();
 
         builder.setDomain(getOrNull(attributes, 0))
                 .setEmailAddress(getOrNull(attributes, 1))
@@ -180,7 +180,7 @@ public class Contact {
 
     @Override
     public String toString() {
-        return "Contact{domain=" + domain + ", email=" + emailAddress + ", name=" + name + ", phone number=" + phoneNumber + "}";
+        return "Recipient{domain=" + domain + ", email=" + emailAddress + ", name=" + name + ", phone number=" + phoneNumber + "}";
     }
 
     public static class Builder {
@@ -239,7 +239,7 @@ public class Contact {
             return this;
         }
 
-        public Contact build() {
+        public Recipient build() {
             if (isSendingCriteriaFulfilled) {
                 if (initialEmailDate == null) {
                     initialEmailDate = ZonedDateTime.now();
@@ -248,7 +248,7 @@ public class Contact {
                 initialEmailDate = null;
             }
 
-            return new Contact(this);
+            return new Recipient(this);
         }
     }
 }

@@ -11,7 +11,7 @@ import com.mailscheduler.exception.*;
 import com.mailscheduler.exception.dao.RecipientDaoException;
 import com.mailscheduler.exception.service.RecipientServiceException;
 import com.mailscheduler.mapper.EntityMapper;
-import com.mailscheduler.model.Contact;
+import com.mailscheduler.model.Recipient;
 import com.mailscheduler.model.Email;
 import com.mailscheduler.model.SpreadsheetReference;
 
@@ -26,81 +26,81 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Service responsible for synchronizing contact information between spreadsheets and the database.
+ * Service responsible for synchronizing recipient information between spreadsheets and the database.
  * This service handles the following operations:
- * - Loading contacts from configured spreadsheet columns
- * - Synchronizing contact data with the database
+ * - Loading recipient from configured spreadsheet columns
+ * - Synchronizing recipient data with the database
  * - Managing recipient email information
- * - Handling contact updates and merges
+ * - Handling recipient updates and merges
  *
  * @author phleudt
  * @version 1.0
  */
-public class ContactSynchronizationService {
-    private static final Logger LOGGER = Logger.getLogger(ContactSynchronizationService.class.getName());
+public class RecipientSynchronizationService {
+    private static final Logger LOGGER = Logger.getLogger(RecipientSynchronizationService.class.getName());
     private static final String EMAIL_VALIDATION_REGEX = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$";
 
     private final RecipientDao recipientDao;
     private final SpreadsheetService spreadsheetService;
     private final UserInteractionService userInteractionService;
-    private final Map<String, SpreadsheetReference> contactSpreadsheetReference; // Currently only SpreadsheetReference.Type.COLUMN supported
+    private final Map<String, SpreadsheetReference> recipientSpreadsheetReference; // Currently only SpreadsheetReference.Type.COLUMN supported
     private final List<SendingCriterion> sendingCriteria;
 
     /**
-     * Constructs a new ContactSynchronizationService with the specified dependencies.
+     * Constructs a new RecipientSynchronizationService with the specified dependencies.
      *
      * @param spreadsheetService Service for interacting with spreadsheets
-     * @param configuration Contains configuration settings for contact columns and sending criteria
+     * @param configuration Contains configuration settings for recipient columns and sending criteria
      */
-    public ContactSynchronizationService(SpreadsheetService spreadsheetService, Configuration configuration) {
+    public RecipientSynchronizationService(SpreadsheetService spreadsheetService, Configuration configuration) {
         this.recipientDao = new RecipientDao(DatabaseManager.getInstance());
         this.spreadsheetService = spreadsheetService;
         this.userInteractionService = new UserInteractionService();
-        this.contactSpreadsheetReference = configuration.getContactColumns();
+        this.recipientSpreadsheetReference = configuration.getRecipientColumns();
         this.sendingCriteria = configuration.getSendingCriteria();
 
     }
 
     /**
-     * Synchronizes contact data from configured spreadsheet columns to the database.
+     * Synchronizes recipient data from configured spreadsheet columns to the database.
      * This method performs the following steps:
      * 1. Collects all relevant spreadsheet references
-     * 2. Fetches contacts from the spreadsheet
-     * 3. Processes and updates the database with contact information
+     * 2. Fetches recipients from the spreadsheet
+     * 3. Processes and updates the database with recipient information
      *
      * @throws RecipientServiceException if synchronization fails
      */
-    public void syncContacts() throws RecipientServiceException {
+    public void syncRecipients() throws RecipientServiceException {
         try {
             List<SpreadsheetReference> spreadsheetReferences = collectSpreadsheetReferences();
-            LOGGER.info("Synchronizing contacts from spreadsheet columns: " + spreadsheetReferences);
+            LOGGER.info("Synchronizing recipient from spreadsheet columns: " + spreadsheetReferences);
 
-            List<Contact> contacts = fetchContactsFromSpreadsheet(spreadsheetReferences);
-            processContactUpdates(contacts);
+            List<Recipient> recipients = fetchRecipientsFromSpreadsheet(spreadsheetReferences);
+            processRecipientUpdates(recipients);
         } catch (RecipientServiceException e) {
-            LOGGER.severe("Contact synchronization failed: " + e.getMessage());
-            throw new RecipientServiceException("Failed to synchronize contacts", e);
+            LOGGER.severe("recipient synchronization failed: " + e.getMessage());
+            throw new RecipientServiceException("Failed to synchronize recipient", e);
         }
     }
 
     /**
-     * Processes a list of contacts, updating existing contacts or creating new ones as needed.
+     * Processes a list of recipient, updating existing recipient or creating new ones as needed.
      * Handles database transactions and rollback in case of errors.
      *
-     * @param contacts List of contacts to process
-     * @throws RecipientServiceException if contact processing fails
+     * @param recipients List of recipient to process
+     * @throws RecipientServiceException if recipient processing fails
      */
-    private void processContactUpdates(List<Contact> contacts) throws RecipientServiceException {
+    private void processRecipientUpdates(List<Recipient> recipients) throws RecipientServiceException {
         try {
             recipientDao.beginTransaction();
 
-            for (Contact contact : contacts) {
-                Optional<RecipientEntity> existingRecipients = findExistingRecipient(contact);
+            for (Recipient recipient : recipients) {
+                Optional<RecipientEntity> existingRecipients = findExistingRecipient(recipient);
 
                 if (existingRecipients.isPresent()) {
-                    updateExistingContact(contact, existingRecipients.get());
-                } else if (isValidContact(contact)){
-                    persistNewContact(contact);
+                    updateExistingRecipient(recipient, existingRecipients.get());
+                } else if (isValidRecipient(recipient)){
+                    persistNewRecipient(recipient);
                 }
             }
             recipientDao.commitTransaction();
@@ -169,12 +169,12 @@ public class ContactSynchronizationService {
 
     private List<SpreadsheetReference> collectSpreadsheetReferences() {
         List<SpreadsheetReference> references = new ArrayList<>(List.of(
-                contactSpreadsheetReference.get("domain"),
-                contactSpreadsheetReference.get("emailAddress"),
-                contactSpreadsheetReference.get("name"),
-                contactSpreadsheetReference.get("salutation"),
-                contactSpreadsheetReference.get("phoneNumber"),
-                contactSpreadsheetReference.get("initialEmailDate")
+                recipientSpreadsheetReference.get("domain"),
+                recipientSpreadsheetReference.get("emailAddress"),
+                recipientSpreadsheetReference.get("name"),
+                recipientSpreadsheetReference.get("salutation"),
+                recipientSpreadsheetReference.get("phoneNumber"),
+                recipientSpreadsheetReference.get("initialEmailDate")
         ));
 
         references.addAll(sendingCriteria.stream()
@@ -183,25 +183,25 @@ public class ContactSynchronizationService {
         return references;
     }
 
-    private boolean isValidContact(Contact contact) {
-        return contact.getEmailAddress() != null &&
-                contact.getEmailAddress().matches(EMAIL_VALIDATION_REGEX);
+    private boolean isValidRecipient(Recipient recipient) {
+        return recipient.getEmailAddress() != null &&
+                recipient.getEmailAddress().matches(EMAIL_VALIDATION_REGEX);
     }
 
     private void handleTransactionError(Exception e) throws RecipientServiceException {
-        LOGGER.log(Level.SEVERE, "Failed to process contacts", e);
+        LOGGER.log(Level.SEVERE, "Failed to process recipient", e);
         try {
             recipientDao.rollbackTransaction();
         } catch (SQLException rollbackEx) {
             LOGGER.log(Level.SEVERE, "Failed to rollback transaction", rollbackEx);
         }
-        throw new RecipientServiceException("Contact processing failed", e);
+        throw new RecipientServiceException("Recipient processing failed", e);
     }
 
-    private void updateExistingContact(Contact newContact, RecipientEntity existingRecipient)
+    private void updateExistingRecipient(Recipient newRecipient, RecipientEntity existingRecipient)
             throws RecipientDaoException, MappingException {
         RecipientDto existingDto = EntityMapper.toRecipientDto(existingRecipient);
-        RecipientDto newDto = EntityMapper.toRecipientDto(newContact);
+        RecipientDto newDto = EntityMapper.toRecipientDto(newRecipient);
 
         if (existingDto.equals(newDto)) {
             return;
@@ -220,7 +220,7 @@ public class ContactSynchronizationService {
             return;
         }
 
-        if (userInteractionService.promptContactUpdate(existingDto, newDto)) {
+        if (userInteractionService.promptRecipientUpdate(existingDto, newDto)) {
             RecipientDto mergeRecipient = mergeRecipients(existingDto, newDto);
             recipientDao.updateRecipientById(
                     mergeRecipient.getId(),
@@ -229,18 +229,18 @@ public class ContactSynchronizationService {
         }
     }
 
-    private void persistNewContact(Contact contact) throws RecipientDaoException, MappingException {
-        RecipientDto recipientDto = EntityMapper.toRecipientDto(contact);
+    private void persistNewRecipient(Recipient recipient) throws RecipientDaoException, MappingException {
+        RecipientDto recipientDto = EntityMapper.toRecipientDto(recipient);
         recipientDao.insertRecipient(EntityMapper.toRecipientEntity(recipientDto));
     }
 
-    private Optional<RecipientEntity> findExistingRecipient(Contact contact) throws RecipientDaoException {
+    private Optional<RecipientEntity> findExistingRecipient(Recipient recipient) throws RecipientDaoException {
         return Optional.ofNullable(
                 recipientDao.findRecipientByUniqueIdentifiers(
-                        contact.getEmailAddress(),
-                        contact.getName(),
-                        contact.getPhoneNumber(),
-                        contact.getDomain()
+                        recipient.getEmailAddress(),
+                        recipient.getName(),
+                        recipient.getPhoneNumber(),
+                        recipient.getDomain()
                 )
         );
     }
@@ -257,11 +257,11 @@ public class ContactSynchronizationService {
     }
 
 
-    private List<Contact> fetchContactsFromSpreadsheet(List<SpreadsheetReference> spreadsheetReferences) throws RecipientServiceException {
+    private List<Recipient> fetchRecipientsFromSpreadsheet(List<SpreadsheetReference> spreadsheetReferences) throws RecipientServiceException {
         try {
-            return spreadsheetService.retrieveContacts(spreadsheetReferences);
+            return spreadsheetService.retrieveRecipient(spreadsheetReferences);
         } catch (IOException |SpreadsheetOperationException e) {
-            throw new RecipientServiceException("Spreadsheet contact retrieval failed", e);
+            throw new RecipientServiceException("Spreadsheet recipient retrieval failed", e);
         }
     }
 
@@ -300,17 +300,17 @@ class UserInteractionService extends AbstractUserConsoleInteractionService {
     /**
      * This method interacts with the user to prompt them, whether to change the data from the existing recipient to new recipient
      */
-    boolean promptContactUpdate(RecipientDto existingRecipient, RecipientDto newRecipient) {
+    boolean promptRecipientUpdate(RecipientDto existingRecipient, RecipientDto newRecipient) {
         displayDifferenceBetweenRecipients(existingRecipient, newRecipient);
 
-        System.out.println("Do you want to update this contact? (y/n)");
+        System.out.println("Do you want to update this recipient? (y/n)");
         String response = scanner.next().trim().toLowerCase();
 
         return response.equals("y") || response.equals("yes");
     }
 
     private void displayDifferenceBetweenRecipients(RecipientDto existingRecipient, RecipientDto newRecipient) {
-        System.out.println("Existing Contact Found: " + existingRecipient.getName());
+        System.out.println("Existing Recipient Found: " + existingRecipient.getName());
 
         if (existingRecipient.getName() != null && newRecipient.getName() != null && !existingRecipient.getName().equals(newRecipient.getName())) {
             System.out.println("Name: " + existingRecipient.getName() + " -> " + newRecipient.getName());

@@ -111,7 +111,7 @@ public class ConfigurationService {
      */
     private Configuration parsePropertiesToConfiguration(Properties properties) {
         Configuration.Builder builder = new Configuration.Builder()
-                .contactColumns(parseContactColumns(properties))
+                .recipientColumns(parseRecipientColumns(properties))
                 .markEmailColumns(parseMarkEmailColumns(properties))
                 .markSchedulesForEmailColumns(parseMarkScheduleEmailColumns(properties))
                 .spreadsheetId(properties.getProperty("spreadsheet.id"))
@@ -125,29 +125,29 @@ public class ConfigurationService {
     }
 
     /**
-     * Parse contact columns from properties
+     * Parse recipient columns from properties
      *
      * @param properties Properties object containing configuration
-     * @return Map of contact columns
+     * @return Map of recipient columns
      */
-    private Map<String, SpreadsheetReference> parseContactColumns(Properties properties) {
-        Map<String, SpreadsheetReference> contactColumns = new HashMap<>();
-        String[] contactColumnKeys = {
+    private Map<String, SpreadsheetReference> parseRecipientColumns(Properties properties) {
+        Map<String, SpreadsheetReference> recipientColumns = new HashMap<>();
+        String[] recipientColumnKeys = {
                 "domain", "emailAddress", "name", "salutation", "phoneNumber", "initialEmailDate"
         };
 
-        for (String key : contactColumnKeys) {
-            String propertyKey = "contact.columns." + key;
+        for (String key : recipientColumnKeys) {
+            String propertyKey = "recipient.columns." + key;
             String columnLetter = properties.getProperty(propertyKey);
 
             if (columnLetter != null && !columnLetter.isEmpty()) {
-                contactColumns.put(key, SpreadsheetReference.ofColumn(columnLetter));
+                recipientColumns.put(key, SpreadsheetReference.ofColumn(columnLetter));
             } else {
-                logger.warn("Contact column '{}' not found in configuration", key);
+                logger.warn("Recipient column '{}' not found in configuration", key);
             }
         }
 
-        return contactColumns;
+        return recipientColumns;
     }
 
     /**
@@ -263,9 +263,9 @@ public class ConfigurationService {
         properties.setProperty("number.of.followups", String.valueOf(configuration.getNumberOfFollowUps()));
         properties.setProperty("default.sender", configuration.getDefaultSender());
 
-        // Contact Columns
-        configuration.getContactColumns().forEach((key, value) ->
-                properties.setProperty("contact.columns." + key, value.getReference())
+        // Recipient Columns
+        configuration.getRecipientColumns().forEach((key, value) ->
+                properties.setProperty("recipient.columns." + key, value.getReference())
         );
 
         // Mark Email Columns
@@ -334,7 +334,7 @@ class ConfigurationValidator {
     }
 
     private void validateColumns(Configuration configuration) throws ConfigurationService.ConfigurationException {
-        validateColumnMap(configuration.getContactColumns(), "Contact");
+        validateColumnMap(configuration.getRecipientColumns(), "Recipient");
         validateColumnMap(configuration.getMarkEmailColumns(), "Mark Email");
         validateColumnMap(configuration.getMarkSchedulesForEmailColumns(), "Mark Schedules");
     }

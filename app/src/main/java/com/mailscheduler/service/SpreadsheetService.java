@@ -19,18 +19,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
- * Service class responsible for managing email scheduling and contact management operations in Google Sheets.
+ * Service class responsible for managing email scheduling and recipient management operations in Google Sheets.
  * Provides high-level abstractions for spreadsheet operations with comprehensive error handling and logging.
  *
  * This service supports:
  * - Email status tracking (scheduled/sent)
- * - Contact information management
+ * - Recipient information management
  * - Schedule management and date calculations
  * - Batch operations for improved performance
  *
  * @see GoogleSheetService
  * @see Configuration
  */
+
 public class SpreadsheetService {
     private static final Logger LOGGER = Logger.getLogger(SpreadsheetService.class.getName());
     private static final String SCHEDULED_MARKER = "#";
@@ -39,7 +40,7 @@ public class SpreadsheetService {
     private final GoogleSheetService googleSheetService;
     private final String spreadsheetId;
     private final EmailStatusManager emailStatusManager;
-    private final ContactManager contactManager;
+    private final RecipientManager recipientManager;
     private final ScheduleManager scheduleManager;
 
     /**
@@ -54,7 +55,7 @@ public class SpreadsheetService {
         this.spreadsheetId = Optional.ofNullable(configuration.getSpreadsheetId())
                 .orElseThrow(() -> new IllegalArgumentException("Spreadsheet ID cannot be null"));
         this.emailStatusManager = new EmailStatusManager();
-        this.contactManager = new ContactManager();
+        this.recipientManager = new RecipientManager();
         this.scheduleManager = new ScheduleManager();
     }
 
@@ -136,34 +137,34 @@ public class SpreadsheetService {
     }
 
     /**
-     * Manages contact data retrieval and processing operations.
-     * Provides methods for batch reading and processing contact information from multiple spreadsheet columns.
+     * Manages recipient data retrieval and processing operations.
+     * Provides methods for batch reading and processing recipient information from multiple spreadsheet columns.
      */
-    public class ContactManager {
+    public class RecipientManager {
 
         /**
-         * Retrieves and processes contact information from specified spreadsheet columns.
+         * Retrieves and processes recipient information from specified spreadsheet columns.
          * Handles batch reading operations for optimal performance.
          *
-         * @param columns List of spreadsheet columns containing contact information
-         * @return List of Contact objects containing processed contact data
-         * @throws SpreadsheetOperationException if contact retrieval or processing fails
+         * @param columns List of spreadsheet columns containing recipient information
+         * @return List of Recipient objects containing processed recipient data
+         * @throws SpreadsheetOperationException if recipient retrieval or processing fails
          */
-        public List<Contact> retrieveContacts(List<SpreadsheetReference> columns)
+        public List<Recipient> retrieveRecipient(List<SpreadsheetReference> columns)
                 throws SpreadsheetOperationException {
             if (columns == null || columns.isEmpty()) {
-                LOGGER.warning("No columns specified for contact retrieval");
+                LOGGER.warning("No columns specified for recipient retrieval");
                 return new ArrayList<>();            }
 
             try {
                 List<ValueRange> valueRanges = googleSheetService.readSpreadsheetBatch(spreadsheetId, columns);
                 int maxRows = calculateMaxRowCount(valueRanges);
-                LOGGER.info(String.format("Retrieved contact data from %d columns with %d rows",
+                LOGGER.info(String.format("Retrieved recipient data from %d columns with %d rows",
                         columns.size(), maxRows));
 
-                return Contact.buildContactsFromColumns(valueRanges, maxRows);
+                return Recipient.buildRecipientFromColumns(valueRanges, maxRows);
             } catch (IOException e) {
-                String errorMessage = "Failed to retrieve contacts from spreadsheet";
+                String errorMessage = "Failed to retrieve recipient from spreadsheet";
                 LOGGER.log(Level.SEVERE, errorMessage, e);
                 throw new SpreadsheetOperationException(errorMessage, e);            }
         }
@@ -329,13 +330,13 @@ public class SpreadsheetService {
     }
 
     /**
-     * Retrieve contacts from specified columns.
+     * Retrieve recipients from specified columns.
      *
-     * @param columns Columns to retrieve contacts from
-     * @return List of contacts
+     * @param columns Columns to retrieve recipients from
+     * @return List of recipients
      */
-    public List<Contact> retrieveContacts(List<SpreadsheetReference> columns) throws IOException, SpreadsheetOperationException {
-        return contactManager.retrieveContacts(columns);
+    public List<Recipient> retrieveRecipient(List<SpreadsheetReference> columns) throws IOException, SpreadsheetOperationException {
+        return recipientManager.retrieveRecipient(columns);
     }
 
     /**

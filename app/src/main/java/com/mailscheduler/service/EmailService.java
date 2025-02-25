@@ -74,7 +74,7 @@ public class EmailService {
             this.emailValidationService = new EmailValidationService();
 
             this.configuration = configuration;
-            this.emailAddressColumn = configuration.getContactColumns().get("emailAddress");
+            this.emailAddressColumn = configuration.getRecipientColumns().get("emailAddress");
         } catch (Exception e) {
             LOGGER.severe("Failed to initialize EmailService: " + e.getMessage());
             throw new RuntimeException("EmailService initialization failed", e);
@@ -495,7 +495,7 @@ public class EmailService {
             return spreadsheetService.retrieveScheduledAndSentEmails(
                     getColumnsFromMap(configuration.getMarkEmailColumns()),
                     getColumnsFromMap(configuration.getMarkSchedulesForEmailColumns()),
-                    configuration.getContactColumns().get("emailAddress")
+                    configuration.getRecipientColumns().get("emailAddress")
             );
         } catch (SpreadsheetOperationException e) {
             throw new EmailServiceException("Failed to retrieve already scheduled and sent emails from spreadsheet", e);

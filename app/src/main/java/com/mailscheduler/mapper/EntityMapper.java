@@ -186,22 +186,22 @@ public class EntityMapper {
     }
 
     /**
-     * Converts a Contact to a RecipientDto.
+     * Converts a recipient to a RecipientDto.
      *
-     * @param contact the Contact to convert
+     * @param recipient the recipient to convert
      * @return the converted RecipientDto
      */
-    public static RecipientDto toRecipientDto(Contact contact) {
+    public static RecipientDto toRecipientDto(Recipient recipient) {
         return new RecipientDto(
                 -1,
-                contact.getName(),
-                contact.getEmailAddress(),
-                contact.getSalutation(),
-                contact.getDomain(),
-                contact.getPhoneNumber(),
-                contact.getInitialEmailDate(),
-                contact.hasReplied(),
-                contact.getSpreadsheetRow()
+                recipient.getName(),
+                recipient.getEmailAddress(),
+                recipient.getSalutation(),
+                recipient.getDomain(),
+                recipient.getPhoneNumber(),
+                recipient.getInitialEmailDate(),
+                recipient.hasReplied(),
+                recipient.getSpreadsheetRow()
         );
     }
 
@@ -233,13 +233,13 @@ public class EntityMapper {
     }
 
     /**
-     * Converts a RecipientDto to a Contact.
+     * Converts a RecipientDto to a Recipient.
      *
      * @param dto the RecipientDto to convert
-     * @return the converted Contact
+     * @return the converted Recipient
      */
-    public static Contact toContact(RecipientDto dto) {
-        return new Contact.Builder()
+    public static Recipient toRecipient(RecipientDto dto) {
+        return new Recipient.Builder()
                 .setName(dto.getName())
                 .setEmailAddress(dto.getEmailAddress())
                 .setDomain(dto.getDomain())

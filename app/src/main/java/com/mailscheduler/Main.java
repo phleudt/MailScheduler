@@ -30,7 +30,7 @@ public class Main {
     private Configuration configuration;
     private DatabaseManager databaseManager;
     private EmailService emailService;
-    private ContactSynchronizationService contactSynchronizationService;
+    private RecipientSynchronizationService recipientSynchronizationService;
     private ScheduleService scheduleService;
     private EmailTemplateManager emailTemplateManager;
     private ConfigurationService configurationService;
@@ -74,7 +74,7 @@ public class Main {
                 new EmailTemplateDao(databaseManager)
         );
 
-        this.contactSynchronizationService = new ContactSynchronizationService(
+        this.recipientSynchronizationService = new RecipientSynchronizationService(
                 new SpreadsheetService(GoogleSheetService.getInstance(), configuration),
                 configuration
         );
@@ -135,7 +135,7 @@ public class Main {
 
     private void synchronizeData() throws Exception {
         LOGGER.info("Starting data synchronization");
-        contactSynchronizationService.syncContacts();
+        recipientSynchronizationService.syncRecipients();
         List<Draft> drafts = emailTemplateManager.updateTemplatesFromDrafts();
         emailTemplateManager.manageTemplates(drafts, configuration.getNumberOfFollowUps());
         LOGGER.info("Data synchronization completed");
@@ -253,9 +253,9 @@ public class Main {
      */
     private void synchronizeApplicationData() throws Exception {
         try {
-            // Synchronize contacts from spreadsheet
-            contactSynchronizationService.syncContacts();
-            LOGGER.info("Contacts synchronized from spreadsheet");
+            // Synchronize recipients from spreadsheet
+            recipientSynchronizationService.syncRecipients();
+            LOGGER.info("Recipients synchronized from spreadsheet");
 
             // Manage schedules
             scheduleService.manageSchedules(configuration.getNumberOfFollowUps());
@@ -279,7 +279,7 @@ public class Main {
      * Retrieves and prepares recipients for email scheduling
      */
     private List<RecipientDto> retrieveAndPrepareRecipients() throws RecipientServiceException {
-        List<RecipientDto> scheduledRecipients = contactSynchronizationService
+        List<RecipientDto> scheduledRecipients = recipientSynchronizationService
                 .getRecipientsWithInitialEmailDate();
 
         return updateRecipientsEmailStatus(scheduledRecipients);
@@ -295,14 +295,14 @@ public class Main {
             Email initialEmail = emailService.getInitialEmailByRecipientId(recipientDto.getId());
 
             if (isEmailNotSentOrPending(initialEmail)) {
-                RecipientDto updatedRecipient = contactSynchronizationService
+                RecipientDto updatedRecipient = recipientSynchronizationService
                         .updateInitialEmailDateIfPast(recipientDto);
                 scheduledRecipients.set(index, updatedRecipient);
             }
             index++;
         }
 
-        return contactSynchronizationService.getRecipientsWithInitialEmailDate();
+        return recipientSynchronizationService.getRecipientsWithInitialEmailDate();
     }
 
     /**
@@ -319,7 +319,7 @@ public class Main {
     private List<Email> preparePendingEmails() throws Exception {
         List<EmailDto> emailDtos = emailService.getPendingEmailsReadyToSend();
 
-        List<Email> emails = contactSynchronizationService.prepareEmailsForSending(emailDtos);
+        List<Email> emails = recipientSynchronizationService.prepareEmailsForSending(emailDtos);
 
         if (!emails.isEmpty()) {
             emailService.sendEmails(emails);
