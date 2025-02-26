@@ -17,3 +17,5 @@ out/
 /tokens/*
 /app/src/main/resources/googleClientSecrets.json
 /app/src/test/
+/tokens/
+/data/
