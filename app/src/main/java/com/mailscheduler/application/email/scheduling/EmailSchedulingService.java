@@ -3,12 +3,10 @@ package com.mailscheduler.application.email.scheduling;
 import com.mailscheduler.application.email.factory.EmailFactory;
 import com.mailscheduler.common.exception.EmailTemplateManagerException;
 import com.mailscheduler.common.exception.PlaceholderException;
-import com.mailscheduler.common.exception.SpreadsheetOperationException;
 import com.mailscheduler.application.template.TemplateManager;
 import com.mailscheduler.domain.common.EmailAddress;
 import com.mailscheduler.domain.email.EmailId;
 import com.mailscheduler.domain.recipient.Recipient;
-import com.mailscheduler.domain.common.spreadsheet.SpreadsheetReference;
 import com.mailscheduler.domain.email.Email;
 import com.mailscheduler.domain.schedule.ScheduleId;
 import com.mailscheduler.domain.template.PlaceholderManager;
@@ -21,7 +19,6 @@ import com.mailscheduler.infrastructure.persistence.repository.sqlite.SQLiteEmai
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +28,6 @@ public class EmailSchedulingService {
 
     private final SQLiteEmailRepository emailRepository;
     private final TemplateManager templateManager;
-    private final SpreadsheetService spreadsheetService;
     private final EmailFactory emailFactory;
     private final PlaceholderResolver placeholderResolver;
     private final EmailSchedulingValidator validator;
@@ -44,7 +40,6 @@ public class EmailSchedulingService {
     ) {
         this.emailRepository = emailRepository;
         this.templateManager = templateManager;
-        this.spreadsheetService = spreadsheetService;
         this.emailFactory = new EmailFactory(defaultSenderEmail);
         this.placeholderResolver = new PlaceholderResolver(spreadsheetService);
         this.validator = new EmailSchedulingValidator();
@@ -135,7 +130,6 @@ public class EmailSchedulingService {
             EmailSchedulingContext context
     ) throws EmailSchedulingException {
         try {
-            // Validate that we have the required information
             Optional<EmailId> initialEmailId = context.getInitialEmailId();
             Optional<String> threadId = context.getThreadId();
             if (initialEmailId.isEmpty()) {
@@ -192,8 +186,6 @@ public class EmailSchedulingService {
                             recipient.getEmailAddress().value(),
                             e.getMessage()
                     ));
-                    // Continue with next follow-up instead of failing the entire sequence
-                    continue;
                 }
             }
 
