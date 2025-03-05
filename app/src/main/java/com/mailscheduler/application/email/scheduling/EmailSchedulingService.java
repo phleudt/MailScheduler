@@ -55,22 +55,20 @@ public class EmailSchedulingService {
             return ScheduledEmailsResult.empty();
         }
 
-        // TODO: EmailSchedulingResultCollector resultCollector = new EmailSchedulingResultCollector();
+        EmailSchedulingResultCollector resultCollector = new EmailSchedulingResultCollector();
 
-        List<Email> initialEmails = new ArrayList<>();
-        List<Email> followupEmails = new ArrayList<>();
-
-        for (Recipient recipient : recipients) {
+        recipients.forEach(recipient -> {
             try {
                 ScheduledRecipientResult result = scheduleEmailsForRecipient(recipient);
-                initialEmails.addAll(result.initialEmails());
-                followupEmails.addAll(result.followupEmails());
+                resultCollector.addResult(result);
             } catch (EmailSchedulingException e) {
-                LOGGER.log(Level.WARNING, "Failed to schedule emails for recipient: " + recipient.getName().value(), e);
+                LOGGER.log(Level.WARNING,
+                        String.format("Failed to schedule emails for recipient: %s", recipient.getName().value()),
+                        e);
             }
-        }
+        });
 
-        return new ScheduledEmailsResult(initialEmails, followupEmails);
+        return resultCollector.getResult();
     }
 
     private ScheduledRecipientResult scheduleEmailsForRecipient(Recipient recipient) throws EmailSchedulingException {
