@@ -1,6 +1,5 @@
 package com.mailscheduler.application.email.factory;
 
-import com.mailscheduler.common.exception.EmailTemplateManagerException;
 import com.mailscheduler.domain.common.EmailAddress;
 import com.mailscheduler.domain.email.Email;
 import com.mailscheduler.domain.email.EmailCategory;

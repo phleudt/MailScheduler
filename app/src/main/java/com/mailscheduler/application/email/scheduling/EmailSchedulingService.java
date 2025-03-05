@@ -7,11 +7,9 @@ import com.mailscheduler.common.exception.SpreadsheetOperationException;
 import com.mailscheduler.application.template.TemplateManager;
 import com.mailscheduler.domain.common.EmailAddress;
 import com.mailscheduler.domain.email.EmailId;
-import com.mailscheduler.domain.email.EmailStatus;
 import com.mailscheduler.domain.recipient.Recipient;
 import com.mailscheduler.domain.common.spreadsheet.SpreadsheetReference;
 import com.mailscheduler.domain.email.Email;
-import com.mailscheduler.domain.email.EmailCategory;
 import com.mailscheduler.domain.schedule.ScheduleId;
 import com.mailscheduler.domain.template.PlaceholderManager;
 import com.mailscheduler.domain.template.Template;
@@ -35,6 +33,8 @@ public class EmailSchedulingService {
     private final TemplateManager templateManager;
     private final SpreadsheetService spreadsheetService;
     private final EmailFactory emailFactory;
+    private final PlaceholderResolver placeholderResolver;
+    private final EmailSchedulingValidator validator;
 
     public EmailSchedulingService(
             SQLiteEmailRepository emailRepository,
@@ -46,12 +46,16 @@ public class EmailSchedulingService {
         this.templateManager = templateManager;
         this.spreadsheetService = spreadsheetService;
         this.emailFactory = new EmailFactory(defaultSenderEmail);
+        this.placeholderResolver = new PlaceholderResolver(spreadsheetService);
+        this.validator = new EmailSchedulingValidator();
     }
 
     public ScheduledEmailsResult scheduleEmailsForRecipients(List<Recipient> recipients) {
-        if (!validateRecipientInput(recipients)) {
-            return null;
+        if (!validator.validateRecipients(recipients)) {
+            return ScheduledEmailsResult.empty();
         }
+
+        // TODO: EmailSchedulingResultCollector resultCollector = new EmailSchedulingResultCollector();
 
         List<Email> initialEmails = new ArrayList<>();
         List<Email> followupEmails = new ArrayList<>();
@@ -70,17 +74,16 @@ public class EmailSchedulingService {
     }
 
     private ScheduledRecipientResult scheduleEmailsForRecipient(Recipient recipient) throws EmailSchedulingException {
-        validateRecipientInput(recipient);
+        validator.validateRecipient(recipient);
 
         try {
             EmailSchedulingContext context = createEmailSchedulingContext(recipient);
 
             // Different strategies based on current email scheduling status
             return switch (context.getSchedulingStatus()) {
-                case NO_EMAILS_SCHEDULED -> scheduleInitialEmailPack(recipient);
-                case INITIAL_EMAIL_SCHEDULED -> scheduleOneFollowUpEmail(recipient, context);
-                case FIRST_FOLLOWUP_SCHEDULED -> scheduleAdditionalFollowUpEmails(recipient, context);
-                case MAX_FOLLOWUPS_REACHED, NO_SCHEDULING_REQUIRED -> ScheduledRecipientResult.empty();
+                case NO_EMAILS_SCHEDULED -> scheduleCompleteEmailSequence(recipient);
+                case PARTIAL_SEQUENCE_SCHEDULED -> completeRemainingSequence(recipient, context);
+                case SEQUENCE_COMPLETE, NO_SCHEDULING_REQUIRED -> ScheduledRecipientResult.empty();
             };
         } catch (Exception e) {
             throw new EmailSchedulingException(
@@ -88,24 +91,122 @@ public class EmailSchedulingService {
         }
     }
 
-    /**
-     * Create the first set of emails when no emails have been scheduled previously
-     */
-    private ScheduledRecipientResult scheduleInitialEmailPack(Recipient recipient)
-            throws EmailTemplateManagerException, EmailSchedulingException {
+    private ScheduledRecipientResult scheduleCompleteEmailSequence(Recipient recipient)
+            throws EmailTemplateManagerException, EmailSchedulingException, RepositoryException {
+        // Schedule initial email
         Email initialEmail = createInitialEmail(recipient);
         initialEmail = scheduleInitialEmail(initialEmail);
 
-        Email firstFollowUpEmail = createFollowUpEmail(recipient, 1, initialEmail.getId());
-        scheduleFollowUpEmail(firstFollowUpEmail);
+        List<Email> allFollowUps = new ArrayList<>();
+        ZonedDateTime lastScheduledDate = initialEmail.getScheduledDate();
+        int maxFollowUps = emailRepository.getMaxFollowupNumberForSchedule(ScheduleId.of(1));
+
+        // Schedule all follow-ups at once with computed dates
+        for (int followUpNum = 1; followUpNum <= maxFollowUps; followUpNum++) {
+            int intervalDays = emailRepository.getIntervalDaysForFollowupNumber(followUpNum);
+            lastScheduledDate = lastScheduledDate.plusDays(intervalDays);
+
+            Email followUpEmail = createFollowUpEmail(
+                    recipient,
+                    followUpNum,
+                    initialEmail.getId(),
+                    lastScheduledDate
+            );
+
+            scheduleFollowUpEmail(followUpEmail);
+            allFollowUps.add(followUpEmail);
+        }
 
         return new ScheduledRecipientResult(
                 List.of(initialEmail),
-                List.of(firstFollowUpEmail)
+                allFollowUps
         );
     }
 
-    public Email scheduleInitialEmail(Email initialEmail) throws EmailSchedulingException {
+    /**
+     * Completes the remaining sequence of follow-up emails for a recipient
+     * when some emails have already been scheduled.
+     *
+     * @param recipient The recipient to schedule remaining emails for
+     * @param context The current email scheduling context
+     * @return ScheduledRecipientResult containing any newly scheduled follow-up emails
+     * @throws EmailSchedulingException if there are issues scheduling the emails
+     */
+    private ScheduledRecipientResult completeRemainingSequence(
+            Recipient recipient,
+            EmailSchedulingContext context
+    ) throws EmailSchedulingException {
+        try {
+            // Validate that we have the required information
+            Optional<EmailId> initialEmailId = context.getInitialEmailId();
+            Optional<String> threadId = context.getThreadId();
+            if (initialEmailId.isEmpty()) {
+                throw new EmailSchedulingException("Cannot complete sequence: Initial email ID not found");
+            }
+
+            // Get the last scheduled email's date to base our new schedules on
+            ZonedDateTime lastScheduledDate = emailRepository.getLastEmailDateForRecipient(recipient.getId());
+            if (lastScheduledDate == null) {
+                throw new EmailSchedulingException("Cannot determine last scheduled email date");
+            }
+
+            List<Email> newFollowUps = new ArrayList<>();
+            int currentFollowUpNumber = context.getCurrentFollowupNumber();
+            int maxFollowUps = emailRepository.getMaxFollowupNumberForSchedule(ScheduleId.of(1));
+
+            // Schedule remaining follow-ups starting from the next number in sequence
+            for (int followUpNum = currentFollowUpNumber + 1; followUpNum <= maxFollowUps; followUpNum++) {
+                try {
+                    // Get the interval for this follow-up number
+                    int intervalDays = emailRepository.getIntervalDaysForFollowupNumber(followUpNum);
+                    // Calculate the next email date based on the last scheduled date
+                    ZonedDateTime nextEmailDate = lastScheduledDate.plusDays(intervalDays);
+
+                    // Create and schedule the follow-up email
+                    Email followUpEmail = createFollowUpEmail(
+                            recipient,
+                            followUpNum,
+                            initialEmailId.get(),
+                            nextEmailDate
+                    );
+
+                    // Set thread ID if available
+                    threadId.ifPresent(followUpEmail::setThreadId);
+
+                    // Schedule the email
+                    scheduleFollowUpEmail(followUpEmail);
+                    newFollowUps.add(followUpEmail);
+
+                    // Update last scheduled date for next iteration
+                    lastScheduledDate = nextEmailDate;
+
+                    LOGGER.info(String.format(
+                            "Scheduled follow-up #%d for recipient %s on %s",
+                            followUpNum,
+                            recipient.getEmailAddress().value(),
+                            nextEmailDate
+                    ));
+
+                } catch (EmailTemplateManagerException e) {
+                    LOGGER.warning(String.format(
+                            "Failed to create follow-up #%d for recipient %s: %s",
+                            followUpNum,
+                            recipient.getEmailAddress().value(),
+                            e.getMessage()
+                    ));
+                    // Continue with next follow-up instead of failing the entire sequence
+                    continue;
+                }
+            }
+
+            return new ScheduledRecipientResult(List.of(), newFollowUps);
+
+        } catch (RepositoryException e) {
+            throw new EmailSchedulingException("Failed to complete email sequence", e);
+        }
+    }
+
+    private Email scheduleInitialEmail(Email initialEmail) throws EmailSchedulingException {
         try {
             return emailRepository.save(initialEmail);
         } catch (RepositoryException e) {
@@ -113,59 +214,12 @@ public class EmailSchedulingService {
         }
     }
 
-    public void scheduleFollowUpEmail(Email followUpEmail) throws EmailSchedulingException {
+    private void scheduleFollowUpEmail(Email followUpEmail) throws EmailSchedulingException {
         try {
             emailRepository.save(followUpEmail);
         } catch (RepositoryException e) {
             throw new EmailSchedulingException("Failed to insert follow-up email to database", e);
         }
-    }
-
-    private ScheduledRecipientResult scheduleOneFollowUpEmail(
-            Recipient recipient,
-            EmailSchedulingContext context
-    ) throws EmailTemplateManagerException, EmailSchedulingException {
-        Optional<EmailId> initialEmailId = context.getInitialEmailId();
-        Optional<String> threadId = context.getThreadId();
-        if (initialEmailId.isEmpty() || threadId.isEmpty()) return new ScheduledRecipientResult(List.of(), List.of());
-        Email firstFollowUpEmail = createFollowUpEmail(
-                recipient,
-                context.getCurrentFollowupNumber() + 1,
-                initialEmailId.get()
-        );
-        firstFollowUpEmail.setThreadId(threadId.get());
-
-        scheduleFollowUpEmail(firstFollowUpEmail);
-
-        return new ScheduledRecipientResult(
-                List.of(),
-                List.of(firstFollowUpEmail)
-        );
-    }
-
-    private ScheduledRecipientResult scheduleAdditionalFollowUpEmails(
-            Recipient recipient,
-            EmailSchedulingContext context
-    ) throws EmailTemplateManagerException, EmailSchedulingException {
-        Optional<EmailId> initialEmailId = context.getInitialEmailId();
-        Optional<String> threadId = context.getThreadId();
-        if (initialEmailId.isEmpty() || threadId.isEmpty()) return new ScheduledRecipientResult(List.of(), List.of());
-
-        List<Email> followUpEmails = new ArrayList<>();
-
-        for (int i = 1; i <= 2; i++) {
-            Email followUpEmail = createFollowUpEmail(
-                    recipient,
-                    context.getCurrentFollowupNumber() + i,
-                    initialEmailId.get()
-            );
-            followUpEmail.setThreadId(threadId.get());
-
-            scheduleFollowUpEmail(followUpEmail);
-            followUpEmails.add(followUpEmail);
-        }
-
-        return new ScheduledRecipientResult(List.of(), followUpEmails);
     }
 
     private PlaceholderManager resolveSpreadsheetReference(PlaceholderManager manager, SpreadsheetReference row) throws PlaceholderException {
@@ -181,7 +235,7 @@ public class EmailSchedulingService {
                     SpreadsheetReference column = value.getSpreadsheetReference();
 
                     // Combine column with row to create a cell
-                    SpreadsheetReference cell = SpreadsheetReference.ofCell(column.getReference() + "" + row.getReference());
+                    SpreadsheetReference cell = SpreadsheetReference.ofCell(column.getReference() + row.getReference());
                     cellsToRetrieveValuesFrom.add(cell);
                 }
             }
@@ -226,36 +280,39 @@ public class EmailSchedulingService {
         }
     }
 
-    private Email createFollowUpEmail(Recipient recipient, int followUpNumber, EmailId initialEmailId)
-            throws EmailTemplateManagerException, EmailSchedulingException {
+    /**
+     * Creates a follow-up email with a specific scheduled date
+     */
+    private Email createFollowUpEmail(Recipient recipient, int followUpNumber,
+                                      EmailId initialEmailId, ZonedDateTime scheduledDate)
+            throws EmailTemplateManagerException {
+        Optional<Template> template = templateManager.getDefaultFollowUpEmailTemplate(followUpNumber);
+
+        if (template.isEmpty()) {
+            throw new EmailTemplateManagerException(
+                    "Failed to load follow-up template for follow-up number " + followUpNumber);
+        }
+
         try {
-            int intervalDays = emailRepository.getIntervalDaysForFollowupNumber(followUpNumber);
-            ZonedDateTime lastEmailDate = emailRepository.getLastEmailDateForRecipient(recipient.getId());
-            ZonedDateTime followUpEmailDate = lastEmailDate.plusDays(intervalDays);
+            template.get().setPlaceholderManager(
+                    resolveSpreadsheetReference(
+                            template.get().getPlaceholderManager(),
+                            recipient.getSpreadsheetRow()
+                    )
+            );
 
-            Optional<Template> template = templateManager.getDefaultFollowUpEmailTemplate(followUpNumber);
-
-            if (template.isEmpty()) throw new EmailTemplateManagerException("Failed to load follow-up template for follow-up number " + followUpNumber);
-
-            try {
-                template.get().setPlaceholderManager(
-                        resolveSpreadsheetReference(template.get().getPlaceholderManager(), recipient.getSpreadsheetRow())
-                );
-
-                return emailFactory.createFollowUpEmail(recipient, template.get(), followUpEmailDate, followUpNumber, initialEmailId);
-            } catch (PlaceholderException e) {
-                throw new EmailTemplateManagerException("Failed to update placeholder manager", e);
-            }
-        } catch (RepositoryException e) {
-            throw new EmailSchedulingException("Failed to create follow-up email", e);
+            return emailFactory.createFollowUpEmail(
+                    recipient, template.get(), scheduledDate, followUpNumber, initialEmailId);
+        } catch (PlaceholderException e) {
+            throw new EmailTemplateManagerException("Failed to update placeholder manager", e);
         }
     }
 
-    private boolean validateRecipientInput(List<Recipient> recipients) {
+    private boolean validateRecipients(List<Recipient> recipients) {
         return recipients != null && !recipients.isEmpty();
     }
 
-    private void validateRecipientInput(Recipient recipient) throws EmailSchedulingValidationException {
+    private void validateRecipients(Recipient recipient) throws EmailSchedulingValidationException {
         if (recipient == null) {
             throw new EmailSchedulingValidationException("Recipient cannot be null");
         }
@@ -273,124 +330,19 @@ public class EmailSchedulingService {
         return new EmailSchedulingContext(emails, currentFollowupNumber, maxFollowupNumber);
     }
 
-    public static class EmailSchedulingContext {
-        public enum SchedulingStatus {
-            NO_EMAILS_SCHEDULED,
-            INITIAL_EMAIL_SCHEDULED,
-            FIRST_FOLLOWUP_SCHEDULED,
-            MAX_FOLLOWUPS_REACHED,
-            NO_SCHEDULING_REQUIRED
-        }
-
-        private final List<Email> emails;
-        private final int currentFollowupNumber;
-        private final int maxFollowupNumber;
-
-        public EmailSchedulingContext(
-                List<Email> emails,
-                int currentFollowupNumber,
-                int maxFollowupNumber
-        ) {
-            this.emails = emails;
-            this.currentFollowupNumber = currentFollowupNumber;
-            this.maxFollowupNumber = maxFollowupNumber;
-        }
-
-        public SchedulingStatus getSchedulingStatus() {
-            if (isMaxFollowupsReached()) {
-                return SchedulingStatus.MAX_FOLLOWUPS_REACHED;
-            }
-
-            if (emails.isEmpty()) {
-                return SchedulingStatus.NO_EMAILS_SCHEDULED;
-            }
-
-            Optional<Email> initialEmail = getInitialEmail();
-            Optional<Email> lastEmail = getLastEmail();
-            Optional<Email> secondToLastEmail = getSecondToLastEmail();
-
-            if (initialEmail.isPresent() && isEmailPending(initialEmail)) {
-                if (secondToLastEmail.equals(initialEmail)) { // Only initial email and first follow-up are in emailEntities
-                    if (lastEmail.isPresent() && isEmailPending(lastEmail)) {
-                        return SchedulingStatus.NO_SCHEDULING_REQUIRED;
-                    }
-                }
-                return SchedulingStatus.INITIAL_EMAIL_SCHEDULED;
-            }
-            if (initialEmail.isPresent() && isEmailSent(initialEmail)) {
-                if (secondToLastEmail.equals(initialEmail) || isEmailSent(secondToLastEmail)) {
-                    return SchedulingStatus.INITIAL_EMAIL_SCHEDULED;
-                }
-                if (secondToLastEmail.isPresent() && isEmailPending(secondToLastEmail)) {
-                    return SchedulingStatus.NO_SCHEDULING_REQUIRED;
-                }
-            }
-
-            return SchedulingStatus.FIRST_FOLLOWUP_SCHEDULED;
-        }
-
-        private boolean isEmailPending(Optional<Email> email) {
-            return email.filter(email1 -> EmailStatus.PENDING.equals(email1.getStatus())).isPresent();
-        }
-
-        private boolean isEmailSent(Optional<Email> email) {
-            return email.filter(email1 -> EmailStatus.SENT.equals(email1.getStatus())).isPresent();
-        }
-
-        private boolean isMaxFollowupsReached() {
-            return currentFollowupNumber >= maxFollowupNumber;
-        }
-
-        public int getCurrentFollowupNumber() {
-            return currentFollowupNumber;
-        }
-
-        public Optional<EmailId> getInitialEmailId() {
-            Optional<Email> lastEmail = getLastEmail();
-            if (lastEmail.isPresent()) {
-                return lastEmail.get().getInitialEmailId();
-            }
-            return Optional.empty();
-        }
-
-        public Optional<String> getThreadId() {
-            Optional<Email> lastEmail = getLastEmail();
-            if (lastEmail.isPresent()) {
-                return lastEmail.get().getThreadId();
-            }
-            return Optional.empty();
-        }
-
-        private Optional<Email> getInitialEmail() {
-            return emails.stream()
-                    .filter(email -> EmailCategory.INITIAL.equals(email.getCategory()))
-                    .findFirst();
-        }
-
-        private Optional<Email> getLastEmail() {
-            return emails.isEmpty()
-                    ? Optional.empty()
-                    : Optional.of(emails.get(emails.size() - 1));
-        }
-
-        private Optional<Email> getSecondToLastEmail() {
-            return emails.size() < 2
-                    ? Optional.empty()
-                    : Optional.of(emails.get(emails.size() - 2));
-        }
-    }
-
     public record ScheduledRecipientResult(List<Email> initialEmails, List<Email> followupEmails) {
         public static ScheduledRecipientResult empty() {
             return new ScheduledRecipientResult(List.of(), List.of());
         }
     }
 
-    public record ScheduledEmailsResult(List<Email> initialEmails, List<Email> followupEmails) {}
+    public record ScheduledEmailsResult(List<Email> initialEmails, List<Email> followupEmails) {
+        public static ScheduledEmailsResult empty() {
+            return new ScheduledEmailsResult(List.of(), List.of());
+        }
 
-    public static class EmailSchedulingValidationException extends EmailSchedulingException {
-        public EmailSchedulingValidationException(String message) {
-            super(message);
+        public boolean isEmpty() {
+            return initialEmails.isEmpty() && followupEmails.isEmpty();
         }
     }
 }

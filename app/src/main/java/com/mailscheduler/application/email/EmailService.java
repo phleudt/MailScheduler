@@ -112,7 +112,7 @@ public class EmailService {
 
     public int scheduleEmailsForRecipients(List<Recipient> recipients) throws EmailNotScheduledException {
         var result = schedulingManager.scheduleEmailsForRecipients(recipients);
-        if (result == null) {
+        if (result.isEmpty()) {
             return 0;
         }
 
