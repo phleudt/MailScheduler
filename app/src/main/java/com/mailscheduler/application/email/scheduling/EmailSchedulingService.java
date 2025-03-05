@@ -220,53 +220,13 @@ public class EmailSchedulingService {
         }
     }
 
-    private PlaceholderManager resolveSpreadsheetReference(PlaceholderManager manager, SpreadsheetReference row) throws PlaceholderException {
-        PlaceholderManager updatedPlaceholderManager = new PlaceholderManager();
-
-        List<SpreadsheetReference> cellsToRetrieveValuesFrom = new ArrayList<>();
-        for (Map.Entry<String, PlaceholderManager.PlaceholderValue> entry : manager.getAllPlaceholders().entrySet()) {
-            PlaceholderManager.PlaceholderValue value = entry.getValue();
-            PlaceholderManager.ValueType type = value.type();
-            switch (type) {
-                case STRING -> updatedPlaceholderManager.addStringPlaceholder(entry.getKey(), value.getStringValue());
-                case SPREADSHEET_REFERENCE -> {
-                    SpreadsheetReference column = value.getSpreadsheetReference();
-
-                    // Combine column with row to create a cell
-                    SpreadsheetReference cell = SpreadsheetReference.ofCell(column.getReference() + row.getReference());
-                    cellsToRetrieveValuesFrom.add(cell);
-                }
-            }
-        }
-        // Retrieve data from cells and add them to the updated placeholder manager
-        List<String> values;
-        try {
-            if (!cellsToRetrieveValuesFrom.isEmpty()) {
-                values = spreadsheetService.readSpreadsheetBatch(cellsToRetrieveValuesFrom);
-                int index = 0;
-                for (Map.Entry<String, PlaceholderManager.PlaceholderValue> entry : manager.getAllPlaceholders().entrySet()) {
-                    if (entry.getValue().type() == PlaceholderManager.ValueType.SPREADSHEET_REFERENCE) {
-                        if (values.get(index).isEmpty()) throw new PlaceholderException("Cell value is empty");
-                        updatedPlaceholderManager.addStringPlaceholder(entry.getKey(), values.get(index));
-                        index++;
-                    }
-                }
-            }
-        } catch (SpreadsheetOperationException e) {
-            throw new PlaceholderException("Failed to retrieve values from spreadsheet: " + e.getMessage());
-        }
-
-
-        return updatedPlaceholderManager;
-    }
-
     // Helper methods for email creation
     private Email createInitialEmail(Recipient recipient) throws EmailTemplateManagerException {
         Optional<Template> template = templateManager.getDefaultInitialEmailTemplate();
         if (template.isEmpty()) throw new EmailTemplateManagerException("Failed to load default initial template");
         try {
             // Resolve spreadsheet placeholders
-            PlaceholderManager resolvedPlaceholders = resolveSpreadsheetReference(
+            PlaceholderManager resolvedPlaceholders = placeholderResolver.resolvePlaceholders(
                     template.get().getPlaceholderManager(),
                     recipient.getSpreadsheetRow()
             );
@@ -293,7 +253,7 @@ public class EmailSchedulingService {
 
         try {
             template.get().setPlaceholderManager(
-                    resolveSpreadsheetReference(
+                    placeholderResolver.resolvePlaceholders(
                             template.get().getPlaceholderManager(),
                             recipient.getSpreadsheetRow()
                     )
@@ -303,19 +263,6 @@ public class EmailSchedulingService {
                     recipient, template.get(), scheduledDate, followUpNumber, initialEmailId);
         } catch (PlaceholderException e) {
             throw new EmailTemplateManagerException("Failed to update placeholder manager", e);
-        }
-    }
-
-    private boolean validateRecipients(List<Recipient> recipients) {
-        return recipients != null && !recipients.isEmpty();
-    }
-
-    private void validateRecipients(Recipient recipient) throws EmailSchedulingValidationException {
-        if (recipient == null) {
-            throw new EmailSchedulingValidationException("Recipient cannot be null");
-        }
-        if (recipient.getInitialEmailDate() == null) {
-            throw new EmailSchedulingValidationException("Initial email date must be set for recipient " + recipient.getName());
         }
     }
 
