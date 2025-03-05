@@ -45,9 +45,9 @@ public class EmailSchedulingService {
         this.validator = new EmailSchedulingValidator();
     }
 
-    public ScheduledEmailsResult scheduleEmailsForRecipients(List<Recipient> recipients) {
+    public EmailSchedulingResult scheduleEmailsForRecipients(List<Recipient> recipients) {
         if (!validator.validateRecipients(recipients)) {
-            return ScheduledEmailsResult.empty();
+            return EmailSchedulingResult.empty();
         }
 
         EmailSchedulingResultCollector resultCollector = new EmailSchedulingResultCollector();
@@ -273,9 +273,9 @@ public class EmailSchedulingService {
         }
     }
 
-    public record ScheduledEmailsResult(List<Email> initialEmails, List<Email> followupEmails) {
-        public static ScheduledEmailsResult empty() {
-            return new ScheduledEmailsResult(List.of(), List.of());
+    public record EmailSchedulingResult(List<Email> initialEmails, List<Email> followupEmails) {
+        public static EmailSchedulingResult empty() {
+            return new EmailSchedulingResult(List.of(), List.of());
         }
 
         public boolean isEmpty() {

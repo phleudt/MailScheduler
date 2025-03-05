@@ -54,8 +54,8 @@ public class EmailSchedulingResultCollector {
      *
      * @return A new ScheduledEmailsResult containing all collected emails
      */
-    public EmailSchedulingService.ScheduledEmailsResult getResult() {
-        return new EmailSchedulingService.ScheduledEmailsResult(
+    public EmailSchedulingService.EmailSchedulingResult getResult() {
+        return new EmailSchedulingService.EmailSchedulingResult(
                 new ArrayList<>(initialEmails),
                 new ArrayList<>(followupEmails)
         );

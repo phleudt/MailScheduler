@@ -236,7 +236,7 @@ public class EmailService {
         }
     }
 
-    private void validateScheduledEmails(EmailSchedulingService.ScheduledEmailsResult result)
+    private void validateScheduledEmails(EmailSchedulingService.EmailSchedulingResult result)
             throws EmailNotScheduledException {
         try {
             for (Email email : result.initialEmails()) {
@@ -251,7 +251,7 @@ public class EmailService {
     }
 
     private void updateSpreadsheetWithSchedulingInfo(
-            EmailSchedulingService.ScheduledEmailsResult result,
+            EmailSchedulingService.EmailSchedulingResult result,
             List<Recipient> recipients
     ) throws EmailNotScheduledException {
         try {
