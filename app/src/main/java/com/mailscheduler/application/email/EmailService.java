@@ -1,6 +1,6 @@
 package com.mailscheduler.application.email;
 
-import com.mailscheduler.application.email.scheduling.EmailSchedulingManager;
+import com.mailscheduler.application.email.scheduling.EmailSchedulingService;
 import com.mailscheduler.application.email.sending.EmailSendingService;
 import com.mailscheduler.application.email.validation.EmailValidationService;
 import com.mailscheduler.common.config.Configuration;
@@ -46,7 +46,7 @@ public class EmailService {
     private static final Logger LOGGER = Logger.getLogger(EmailService.class.getName());
 
     private final EmailSendingService emailSendingService;
-    private final EmailSchedulingManager schedulingManager;
+    private final EmailSchedulingService schedulingManager;
     private final SpreadsheetService spreadsheetService;
     private final SQLiteEmailRepository emailRepository;
     private final EmailValidationService emailValidationService;
@@ -62,7 +62,7 @@ public class EmailService {
         try {
             this.emailRepository = new SQLiteEmailRepository(DatabaseManager.getInstance());
             this.emailSendingService = new EmailSendingService(gmailService, configuration.isSaveMode());
-            this.schedulingManager = new EmailSchedulingManager(
+            this.schedulingManager = new EmailSchedulingService(
                     emailRepository,
                     new TemplateManager(gmailService, templateRepository),
                     spreadsheetService,
@@ -236,7 +236,7 @@ public class EmailService {
         }
     }
 
-    private void validateScheduledEmails(EmailSchedulingManager.ScheduledEmailsResult result)
+    private void validateScheduledEmails(EmailSchedulingService.ScheduledEmailsResult result)
             throws EmailNotScheduledException {
         try {
             for (Email email : result.initialEmails()) {
@@ -251,7 +251,7 @@ public class EmailService {
     }
 
     private void updateSpreadsheetWithSchedulingInfo(
-            EmailSchedulingManager.ScheduledEmailsResult result,
+            EmailSchedulingService.ScheduledEmailsResult result,
             List<Recipient> recipients
     ) throws EmailNotScheduledException {
         try {
