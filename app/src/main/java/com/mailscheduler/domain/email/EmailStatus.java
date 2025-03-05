@@ -1,8 +1,9 @@
 package com.mailscheduler.domain.email;
 
 public enum EmailStatus {
-    PENDING,
+    PENDING, // TODO: Change to SCHEDULED
     SENT,
+    REPLIED,
     FAILED,
     CANCELLED;
 

@@ -87,7 +87,7 @@ public class SQLiteEmailRepository extends AbstractSQLiteRepository<Email, Email
                 domain.getStatus().toString(),
                 domain.getScheduledDate() != null ?
                         Timestamp.from(domain.getScheduledDate().toInstant()) : null,
-                domain.getEmailCategory().toString(),
+                domain.getCategory().toString(),
                 domain.getFollowupNumber(),
                 domain.getThreadId().orElse(""),
                 1,
@@ -248,6 +248,14 @@ public class SQLiteEmailRepository extends AbstractSQLiteRepository<Email, Email
             return executeQueryForSingleResult(GET_INITIAL_EMAIL_FROM_RECIPIENT_ID_QUERY, recipientId).map(this::mapToDomainEntity);
         } catch (SQLException e) {
             throw new RepositoryException("Failed to retrieve the initial email for recipient with ID: " + recipientId, e);
+        }
+    }
+
+    public boolean updateEmailStatus(EmailId emailId, EmailStatus newStatus) throws RepositoryException {
+        try {
+            return executeUpdate(UPDATE_EMAIL_STATUS_BY_ID_QUERY, newStatus.toString(), emailId.value()) > 0;
+        } catch (SQLException e) {
+            throw new RepositoryException("Failed to update email status for ID: " + emailId.value() + " to status: " + newStatus, e);
         }
     }
 }

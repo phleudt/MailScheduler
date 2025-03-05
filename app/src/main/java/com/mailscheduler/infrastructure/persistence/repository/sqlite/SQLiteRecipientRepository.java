@@ -43,6 +43,8 @@ public class SQLiteRecipientRepository extends AbstractSQLiteRepository<Recipien
             "JOIN Emails e ON r.id = e.recipient_id " +
             "AND e.email_category NOT IN ('EXTERNALLY_INITIAL', 'EXTERNALLY_FOLLOW_UP')";
 
+    private static final String MARK_AS_REPLIED_QUERY = "UPDATE Recipients SET has_replied = TRUE WHERE id = ?";
+
     public SQLiteRecipientRepository(DatabaseManager databaseManager) {
         super(databaseManager);
     }
@@ -232,6 +234,14 @@ public class SQLiteRecipientRepository extends AbstractSQLiteRepository<Recipien
             return findAll(GET_ALL_RECIPIENTS_QUERY);
         } catch (RepositoryException e) {
             throw new RepositoryException("Error getting all recipients", e);
+        }
+    }
+
+    public boolean markAsReplied(RecipientId recipientId) throws RepositoryException {
+        try {
+            return executeUpdate(MARK_AS_REPLIED_QUERY, recipientId.value()) > 0;
+        } catch (SQLException e) {
+            throw new RepositoryException("Failed to mark recipient as replied with ID: " + recipientId.value(), e);
         }
     }
 }

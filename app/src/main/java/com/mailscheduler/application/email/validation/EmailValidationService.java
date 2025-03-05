@@ -1,4 +1,4 @@
-package com.mailscheduler.application.email;
+package com.mailscheduler.application.email.validation;
 
 import com.mailscheduler.domain.email.Email;
 import com.mailscheduler.common.exception.service.EmailValidationException;

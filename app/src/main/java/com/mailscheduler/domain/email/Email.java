@@ -1,6 +1,8 @@
 package com.mailscheduler.domain.email;
 
+import com.mailscheduler.application.email.factory.EmailFactory;
 import com.mailscheduler.domain.common.EmailAddress;
+import com.mailscheduler.domain.recipient.Recipient;
 import com.mailscheduler.domain.recipient.RecipientId;
 import com.mailscheduler.domain.template.Template;
 
@@ -74,6 +76,10 @@ public class Email {
         return emailCategory == EmailCategory.FOLLOW_UP;
     }
 
+    public boolean isSent() {
+        return EmailStatus.SENT.equals(status);
+    }
+
     private void validateForScheduling() {
         if (sender == null) {
             throw new IllegalStateException("Sender must be specified");
@@ -125,7 +131,7 @@ public class Email {
         return scheduledDate;
     }
 
-    public EmailCategory getEmailCategory() {
+    public EmailCategory getCategory() {
         return emailCategory;
     }
 
@@ -189,8 +195,19 @@ public class Email {
             return this;
         }
 
+        public Builder setSender(EmailAddress sender) {
+            this.sender = sender;
+            return this;
+        }
+
         public Builder setSender(String sender) {
             this.sender = EmailAddress.of(sender);
+            return this;
+        }
+
+        public Builder setRecipient(Recipient recipient) {
+            this.recipient = recipient.getEmailAddress();
+            this.recipientId = recipient.getId();
             return this;
         }
 

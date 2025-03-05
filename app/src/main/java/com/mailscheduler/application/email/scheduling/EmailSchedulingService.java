@@ -1,4 +1,4 @@
-package com.mailscheduler.application.email;
+package com.mailscheduler.application.email.scheduling;
 
 import com.mailscheduler.common.exception.service.EmailSchedulingException;
 import com.mailscheduler.infrastructure.persistence.exception.RepositoryException;

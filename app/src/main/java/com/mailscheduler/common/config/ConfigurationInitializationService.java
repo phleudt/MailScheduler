@@ -1,10 +1,10 @@
 package com.mailscheduler.common.config;
 
+import com.mailscheduler.application.email.validation.EmailValidationService;
 import com.mailscheduler.common.exception.validation.CriterionValidationException;
 import com.mailscheduler.common.exception.service.EmailValidationException;
 import com.mailscheduler.domain.common.spreadsheet.SpreadsheetReference;
 import com.mailscheduler.interfaces.cli.AbstractUserConsoleInteractionService;
-import com.mailscheduler.application.email.EmailValidationService;
 import com.mailscheduler.application.spreadsheet.SpreadsheetService;
 
 import java.io.IOException;

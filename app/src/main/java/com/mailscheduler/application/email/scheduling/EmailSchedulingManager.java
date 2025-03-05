@@ -1,9 +1,11 @@
-package com.mailscheduler.application.email;
+package com.mailscheduler.application.email.scheduling;
 
+import com.mailscheduler.application.email.factory.EmailFactory;
 import com.mailscheduler.common.exception.EmailTemplateManagerException;
 import com.mailscheduler.common.exception.PlaceholderException;
 import com.mailscheduler.common.exception.SpreadsheetOperationException;
 import com.mailscheduler.application.template.TemplateManager;
+import com.mailscheduler.domain.common.EmailAddress;
 import com.mailscheduler.domain.email.EmailId;
 import com.mailscheduler.domain.email.EmailStatus;
 import com.mailscheduler.domain.recipient.Recipient;
@@ -13,8 +15,6 @@ import com.mailscheduler.domain.email.EmailCategory;
 import com.mailscheduler.domain.schedule.ScheduleId;
 import com.mailscheduler.domain.template.PlaceholderManager;
 import com.mailscheduler.domain.template.Template;
-import com.mailscheduler.application.dto.RecipientDto;
-import com.mailscheduler.common.exception.dao.EmailDaoException;
 import com.mailscheduler.common.exception.service.EmailSchedulingException;
 import com.mailscheduler.infrastructure.persistence.exception.RepositoryException;
 import com.mailscheduler.application.spreadsheet.SpreadsheetService;
@@ -35,20 +35,21 @@ public class EmailSchedulingManager {
     private final TemplateManager templateManager;
     private final EmailSchedulingService emailSchedulingService;
     private final SpreadsheetService spreadsheetService;
-    private final String defaultSenderEmail;
+    private final EmailAddress defaultSenderEmail;
+    private final EmailFactory emailFactory;
 
     public EmailSchedulingManager(
             SQLiteEmailRepository emailRepository,
             TemplateManager templateManager,
             SpreadsheetService spreadsheetService,
-            String defaultSenderEmail
+            EmailAddress defaultSenderEmail
     ) {
         this.emailRepository = emailRepository;
         this.templateManager = templateManager;
         this.emailSchedulingService = new EmailSchedulingService(emailRepository);
         this.spreadsheetService = spreadsheetService;
         this.defaultSenderEmail = defaultSenderEmail;
-
+        this.emailFactory = new EmailFactory(defaultSenderEmail);
     }
 
     public ScheduledEmailsResult scheduleEmailsForRecipients(List<Recipient> recipients) {
@@ -197,7 +198,6 @@ public class EmailSchedulingManager {
 
     // Helper methods for email creation
     private Email createInitialEmail(Recipient recipient) throws EmailTemplateManagerException {
-        ZonedDateTime initialEmailDate = recipient.getInitialEmailDate();
         Optional<Template> template = templateManager.getDefaultInitialEmailTemplate();
         if (template.isEmpty()) throw new EmailTemplateManagerException("Failed to load default initial template");
         try {
@@ -208,15 +208,7 @@ public class EmailSchedulingManager {
             );
             template.get().setPlaceholderManager(resolvedPlaceholders);
 
-            return new Email.Builder()
-                    .setSender(defaultSenderEmail)
-                    .setRecipient(recipient.getEmailAddress())
-                    .setRecipientId(recipient.getId())
-                    .setStatus("PENDING")
-                    .setScheduledDate(initialEmailDate)
-                    .setCategory(EmailCategory.INITIAL)
-                    .setTemplate(template.get())
-                    .build();
+            return emailFactory.createInitialEmail(recipient, template.get());
         } catch (PlaceholderException e) {
             throw new EmailTemplateManagerException("Failed to update the placeholder manager", e);
         }
@@ -237,17 +229,8 @@ public class EmailSchedulingManager {
                 template.get().setPlaceholderManager(
                         resolveSpreadsheetReference(template.get().getPlaceholderManager(), recipient.getSpreadsheetRow())
                 );
-                return new Email.Builder()
-                        .setSender(defaultSenderEmail)
-                        .setRecipient(recipient.getEmailAddress())
-                        .setRecipientId(recipient.getId())
-                        .setStatus("PENDING")
-                        .setScheduledDate(followUpEmailDate)
-                        .setFollowupNumber(followUpNumber)
-                        .setInitialEmailId(initialEmailId)
-                        .setCategory(EmailCategory.FOLLOW_UP)
-                        .setTemplate(template.get())
-                        .build();
+
+                return emailFactory.createFollowUpEmail(recipient, template.get(), followUpEmailDate, followUpNumber, initialEmailId);
             } catch (PlaceholderException e) {
                 throw new EmailTemplateManagerException("Failed to update placeholder manager", e);
             }
@@ -368,7 +351,7 @@ public class EmailSchedulingManager {
 
         private Optional<Email> getInitialEmail() {
             return emails.stream()
-                    .filter(email -> EmailCategory.INITIAL.equals(email.getEmailCategory()))
+                    .filter(email -> EmailCategory.INITIAL.equals(email.getCategory()))
                     .findFirst();
         }
 

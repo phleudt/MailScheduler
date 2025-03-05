@@ -1,5 +1,8 @@
 package com.mailscheduler.application.email;
 
+import com.mailscheduler.application.email.scheduling.EmailSchedulingManager;
+import com.mailscheduler.application.email.sending.EmailSendingService;
+import com.mailscheduler.application.email.validation.EmailValidationService;
 import com.mailscheduler.common.config.Configuration;
 import com.mailscheduler.common.exception.SpreadsheetOperationException;
 import com.mailscheduler.domain.common.EmailAddress;
@@ -9,7 +12,6 @@ import com.mailscheduler.domain.recipient.Recipient;
 import com.mailscheduler.domain.recipient.RecipientId;
 import com.mailscheduler.domain.schedule.ScheduleId;
 import com.mailscheduler.infrastructure.persistence.database.DatabaseManager;
-import com.mailscheduler.infrastructure.email.EmailSender;
 import com.mailscheduler.application.template.TemplateManager;
 import com.mailscheduler.common.exception.service.EmailServiceException;
 import com.mailscheduler.common.exception.service.EmailValidationException;
@@ -43,7 +45,7 @@ import java.util.stream.Collectors;
 public class EmailService {
     private static final Logger LOGGER = Logger.getLogger(EmailService.class.getName());
 
-    private final EmailSender emailSender;
+    private final EmailSendingService emailSendingService;
     private final EmailSchedulingManager schedulingManager;
     private final SpreadsheetService spreadsheetService;
     private final SQLiteEmailRepository emailRepository;
@@ -59,12 +61,12 @@ public class EmailService {
     ) {
         try {
             this.emailRepository = new SQLiteEmailRepository(DatabaseManager.getInstance());
-            this.emailSender = new EmailSender(gmailService, configuration.isSaveMode());
+            this.emailSendingService = new EmailSendingService(gmailService, configuration.isSaveMode());
             this.schedulingManager = new EmailSchedulingManager(
                     emailRepository,
                     new TemplateManager(gmailService, templateRepository),
                     spreadsheetService,
-                    configuration.getDefaultSender()
+                    EmailAddress.of(configuration.getDefaultSender())
             );
             this.spreadsheetService = spreadsheetService;
             this.emailValidationService = new EmailValidationService();
@@ -80,7 +82,7 @@ public class EmailService {
     public void sendEmail(Email email) throws EmailNotSentException {
         try {
             emailValidationService.validateSending(email);
-            EmailSender.EmailSendResult sendResult = emailSender.sendEmail(email);
+            EmailSendingService.EmailSendResult sendResult = emailSendingService.sendEmail(email);
 
             switch (sendResult.status()) {
                 case SENT -> handleSuccessfulSend(email, sendResult);
@@ -160,7 +162,7 @@ public class EmailService {
     }
 
     // Helper methods
-    private void handleSuccessfulSend(Email email, EmailSender.EmailSendResult result) throws EmailServiceException {
+    private void handleSuccessfulSend(Email email, EmailSendingService.EmailSendResult result) throws EmailServiceException {
         email.setThreadId(result.message().getThreadId());
         email.setStatus(EmailStatus.SENT);
         updateEmailInDatabase(email);
@@ -169,7 +171,7 @@ public class EmailService {
 
     private Map<EmailCategory, List<Email>> categorizeEmails(List<Email> emails) {
         return emails.stream()
-                .collect(Collectors.groupingBy(Email::getEmailCategory));
+                .collect(Collectors.groupingBy(Email::getCategory));
     }
 
     private void sendInitialEmails(List<Email> initialEmails) {

@@ -1,7 +1,8 @@
-package com.mailscheduler.infrastructure.email;
+package com.mailscheduler.application.email.sending;
 
 import com.google.api.services.gmail.model.Message;
 import com.mailscheduler.common.exception.validation.EmailNotSentException;
+import com.mailscheduler.infrastructure.email.EmailConverter;
 import com.mailscheduler.infrastructure.google.gmail.GmailService;
 import com.mailscheduler.domain.email.Email;
 import com.mailscheduler.domain.common.SendStatus;
@@ -9,12 +10,12 @@ import com.mailscheduler.domain.common.SendStatus;
 import java.io.IOException;
 import java.util.logging.Logger;
 
-public class EmailSender {
-    private final Logger LOGGER = Logger.getLogger(EmailSender.class.getName());
+public class EmailSendingService {
+    private final Logger LOGGER = Logger.getLogger(EmailSendingService.class.getName());
     private final GmailService gmailService;
     private final boolean saveMode;
 
-    public EmailSender(GmailService gmailService, boolean saveMode) {
+    public EmailSendingService(GmailService gmailService, boolean saveMode) {
         this.gmailService = gmailService;
         this.saveMode = saveMode;
     }
@@ -25,10 +26,10 @@ public class EmailSender {
             return new EmailSendResult(SendStatus.ALREADY_REPLIED, null);
         }
 
-        Message sentMessage = switch (email.getEmailCategory()) {
+        Message sentMessage = switch (email.getCategory()) {
             case INITIAL -> sendInitialEmail(email);
             case FOLLOW_UP -> sendFollowUpEmail(email);
-            default -> throw new IllegalArgumentException("Unsupported email category: " + email.getEmailCategory());
+            default -> throw new IllegalArgumentException("Unsupported email category: " + email.getCategory());
         };
 
         if (sentMessage != null) {
