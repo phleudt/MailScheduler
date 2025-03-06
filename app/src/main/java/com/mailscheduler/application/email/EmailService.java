@@ -1,6 +1,7 @@
 package com.mailscheduler.application.email;
 
 import com.mailscheduler.application.email.scheduling.EmailSchedulingService;
+import com.mailscheduler.application.email.sending.EmailSendResult;
 import com.mailscheduler.application.email.sending.EmailSendingService;
 import com.mailscheduler.application.email.validation.EmailValidationService;
 import com.mailscheduler.common.config.Configuration;
@@ -30,6 +31,8 @@ import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+
+import static com.mailscheduler.domain.common.SendStatus.ALREADY_REPLIED;
 
 /**
  * Service responsible for managing email operations including sending, scheduling, and synchronization.
@@ -82,7 +85,7 @@ public class EmailService {
     public void sendEmail(Email email) throws EmailNotSentException {
         try {
             emailValidationService.validateSending(email);
-            EmailSendingService.EmailSendResult sendResult = emailSendingService.sendEmail(email);
+            EmailSendResult sendResult = emailSendingService.sendEmail(email);
 
             switch (sendResult.status()) {
                 case SENT -> handleSuccessfulSend(email, sendResult);
@@ -162,7 +165,7 @@ public class EmailService {
     }
 
     // Helper methods
-    private void handleSuccessfulSend(Email email, EmailSendingService.EmailSendResult result) throws EmailServiceException {
+    private void handleSuccessfulSend(Email email, EmailSendResult result) throws EmailServiceException {
         email.setThreadId(result.message().getThreadId());
         email.setStatus(EmailStatus.SENT);
         updateEmailInDatabase(email);
