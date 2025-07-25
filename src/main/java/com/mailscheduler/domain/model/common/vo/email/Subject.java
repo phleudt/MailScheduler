@@ -47,7 +47,7 @@ public record Subject(String value) {
     /**
      * Returns a truncated version of the subject.
      * If the subject is shorter than the specified length, it is returned unchanged.
-     * If longer, it will be truncated and appended with "...".
+     * If longer, it will be truncated to length minus 3 and appended with "...".
      *
      * @param length The maximum length before truncation
      * @return The truncated subject text
@@ -61,7 +61,7 @@ public record Subject(String value) {
             return value;
         }
 
-        return value.substring(0, length) + "...";
+        return value.substring(0, length - 3) + "...";
     }
 
     @Override
