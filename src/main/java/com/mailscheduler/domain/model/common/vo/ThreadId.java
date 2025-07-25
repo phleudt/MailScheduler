@@ -16,6 +16,9 @@ public record ThreadId(String value) {
      * @throws IllegalArgumentException if the value is null or empty
      */
     public static ThreadId of(String value) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException("Thread ID cannot be null or blank.");
+        }
         return new ThreadId(value);
     }
 
