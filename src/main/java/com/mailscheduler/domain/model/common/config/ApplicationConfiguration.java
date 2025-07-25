@@ -116,7 +116,7 @@ public class ApplicationConfiguration extends IdentifiableEntity<ApplicationConf
 
         // Add each mapping to its corresponding type list
         for (ColumnMapping columnMapping : columnMappings) {
-            groupedMappings.put(columnMapping.type(), columnMappings);
+            groupedMappings.get(columnMapping.type()).add(columnMapping);
         }
 
         return groupedMappings;
