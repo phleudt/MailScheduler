@@ -2,7 +2,6 @@ package com.mailscheduler.domain.factory;
 
 import com.mailscheduler.domain.model.schedule.FollowUpPlan;
 import com.mailscheduler.domain.model.schedule.FollowUpPlanType;
-import com.mailscheduler.domain.model.common.vo.RelativePeriod;
 
 import java.util.List;
 import java.util.Objects;
@@ -29,7 +28,7 @@ public class FollowUpPlanFactory {
         FollowUpPlan.Builder builder = new FollowUpPlan.Builder();
         builder.setFollowUpPlanType(FollowUpPlanType.DEFAULT_FOLLOW_UP_PLAN);
         for (Integer waitingPeriod : waitingPeriods) {
-            builder.addStep(RelativePeriod.ofDays(waitingPeriod));
+            builder.addStep(waitingPeriod);
         }
         return builder.build();
     }
@@ -47,7 +46,7 @@ public class FollowUpPlanFactory {
         FollowUpPlan.Builder builder = new FollowUpPlan.Builder();
         builder.setFollowUpPlanType(FollowUpPlanType.FOLLOW_UP_PLAN);
         for (Integer waitingPeriod : waitingPeriods) {
-            builder.addStep(RelativePeriod.ofDays(waitingPeriod));
+            builder.addStep(waitingPeriod);
         }
         return builder.build();
     }

@@ -2,7 +2,6 @@ package com.mailscheduler.domain.model.schedule;
 
 import com.mailscheduler.domain.model.common.base.EntityId;
 import com.mailscheduler.domain.model.common.base.IdentifiableEntity;
-import com.mailscheduler.domain.model.common.vo.RelativePeriod;
 
 import java.util.*;
 
@@ -108,7 +107,7 @@ public class FollowUpPlan extends IdentifiableEntity<FollowUpPlan> {
             return this;
         }
 
-        public Builder addStep(RelativePeriod waitPeriod) {
+        public Builder addStep(int waitPeriod) {
             steps.add(new FollowUpStep(steps.size(), waitPeriod));
             return this;
         }

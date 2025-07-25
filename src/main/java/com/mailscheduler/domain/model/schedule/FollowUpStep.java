@@ -2,7 +2,6 @@ package com.mailscheduler.domain.model.schedule;
 
 import com.mailscheduler.domain.model.common.base.EntityId;
 import com.mailscheduler.domain.model.common.base.IdentifiableEntity;
-import com.mailscheduler.domain.model.common.vo.RelativePeriod;
 
 import java.time.LocalDate;
 import java.util.Objects;
@@ -16,7 +15,7 @@ import java.util.Objects;
  */
 public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
     private final int stepNumber;
-    private final RelativePeriod waitPeriod;
+    private final int waitPeriod;
 
     /**
      * Creates a follow-up step with a step number and wait period.
@@ -25,11 +24,10 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
      * @param waitPeriod The period to wait after the previous step
      * @throws IllegalArgumentException if stepNumber is negative or waitPeriod is null
      */
-    public FollowUpStep(int stepNumber, RelativePeriod waitPeriod) {
+    public FollowUpStep(int stepNumber, int waitPeriod) {
         if (stepNumber < 0) {
             throw new IllegalArgumentException("Step number cannot be negative");
         }
-        Objects.requireNonNull(waitPeriod, "Wait period cannot be null");
 
         this.stepNumber = stepNumber;
         this.waitPeriod = waitPeriod;
@@ -43,7 +41,7 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
      * @param waitPeriod The period to wait after the previous step
      * @throws IllegalArgumentException if stepNumber is negative or waitPeriod is null
      */
-    public FollowUpStep(EntityId<FollowUpStep> id, int stepNumber, RelativePeriod waitPeriod) {
+    public FollowUpStep(EntityId<FollowUpStep> id, int stepNumber, int waitPeriod) {
         this(stepNumber, waitPeriod);
         setId(id);
     }
@@ -52,24 +50,8 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
         return stepNumber;
     }
 
-    public RelativePeriod getWaitPeriod() {
+    public int getWaitPeriod() {
         return waitPeriod;
-    }
-
-    public int getWaitPeriodInDays() {
-        return waitPeriod.toDays();
-    }
-
-
-    /**
-     * Calculates the date when this step should be executed based on a reference date.
-     *
-     * @param referenceDate The reference date (e.g., the date of the previous step)
-     * @return The scheduled date for this step
-     */
-    public LocalDate calculateScheduledDate(LocalDate referenceDate) {
-        Objects.requireNonNull(referenceDate, "Reference date cannot be null");
-        return waitPeriod.addTo(referenceDate);
     }
 
     /**
@@ -95,7 +77,7 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
     public int hashCode() {
         int result = super.hashCode();
         result = 31 * result + stepNumber;
-        result = 31 * result + (waitPeriod != null ? waitPeriod.hashCode() : 0);
+        result = 31 * result + waitPeriod;
         return result;
     }
 
@@ -114,7 +96,7 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
     public static class Builder {
         private EntityId<FollowUpStep> id;
         private int stepNumber;
-        private RelativePeriod waitPeriod;
+        private int waitPeriod;
 
         /**
          * Sets the entity ID.
@@ -144,7 +126,7 @@ public class FollowUpStep extends IdentifiableEntity<FollowUpStep> {
          * @param waitPeriod The wait period
          * @return This builder instance
          */
-        public Builder waitPeriod(RelativePeriod waitPeriod) {
+        public Builder waitPeriod(int waitPeriod) {
             this.waitPeriod = waitPeriod;
             return this;
         }

@@ -186,7 +186,7 @@ public class EmailScheduler {
         // Skip the first step (initial email) and schedule follow-ups
         for (int i = 1; i < plan.getStepsWithTemplates().size(); i++) {
             var step = plan.getStepsWithTemplates().get(i);
-            int waitDays = step.step().getWaitPeriodInDays();
+            int waitDays = step.step().getWaitPeriod();
 
             // Calculate next email date
             nextScheduledDate = nextScheduledDate.plusDays(waitDays);
@@ -237,7 +237,7 @@ public class EmailScheduler {
         // Skip scheduled steps and continue with remaining ones
         for (int i = currentFollowUpNumber + 1; i <= maxFollowUps; i++) {
             var step = plan.getStepsWithTemplates().get(i);
-            int waitDays = step.step().getWaitPeriodInDays();
+            int waitDays = step.step().getWaitPeriod();
 
             // Calculate when to send the next email
             LocalDate nextEmailDate = lastScheduledDate.plusDays(waitDays);

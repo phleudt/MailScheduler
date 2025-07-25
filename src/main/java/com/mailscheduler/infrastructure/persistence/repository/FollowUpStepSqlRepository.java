@@ -4,7 +4,6 @@ import com.mailscheduler.domain.model.common.base.EntityId;
 import com.mailscheduler.domain.model.schedule.FollowUpPlan;
 import com.mailscheduler.domain.model.schedule.FollowUpStep;
 import com.mailscheduler.domain.model.schedule.FollowUpStepMetadata;
-import com.mailscheduler.domain.model.common.vo.RelativePeriod;
 import com.mailscheduler.domain.model.common.base.EntityData;
 import com.mailscheduler.domain.repository.FollowUpStepRepository;
 import com.mailscheduler.infrastructure.persistence.database.DatabaseFacade;
@@ -51,7 +50,7 @@ implements FollowUpStepRepository {
                 domainEntity.getId() != null ? domainEntity.getId().value() : null,
                 metadata.planId().value(),
                 domainEntity.getStepNumber(),
-                domainEntity.getWaitPeriod().toDays(),
+                domainEntity.getWaitPeriod(),
                 metadata.templateId() != null ? metadata.templateId().value() : null
         );
     }
@@ -60,7 +59,7 @@ implements FollowUpStepRepository {
     protected FollowUpStep toDomainEntity(FollowUpStepEntity tableEntity) {
         return new FollowUpStep(
                 tableEntity.getStepNumber(),
-                RelativePeriod.ofDays(tableEntity.getWaitingPeriod())
+                tableEntity.getWaitingPeriod()
         );
     }
 

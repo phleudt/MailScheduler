@@ -1,9 +1,7 @@
 package com.mailscheduler.domain.model.schedule;
 
-import com.mailscheduler.domain.model.common.vo.RelativePeriod;
 import com.mailscheduler.domain.model.template.Template;
 
-import java.time.LocalDate;
 import java.util.Objects;
 
 /**
@@ -40,18 +38,8 @@ public record PlanStepWithTemplate(FollowUpStep step, Template template) {
      *
      * @return The wait period
      */
-    public RelativePeriod getWaitPeriod() {
+    public int getWaitPeriod() {
         return step.getWaitPeriod();
-    }
-
-    /**
-     * Calculates the date when this step should be executed based on a reference date.
-     *
-     * @param referenceDate The reference date
-     * @return The scheduled date for this step
-     */
-    public LocalDate calculateScheduledDate(LocalDate referenceDate) {
-        return step.calculateScheduledDate(referenceDate);
     }
 
     /**
