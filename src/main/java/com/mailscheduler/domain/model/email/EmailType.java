@@ -31,22 +31,20 @@ public enum EmailType {
 
     /**
      * Determines if this email type is part of a follow-up sequence.
-     * Excludes externally added emails
      *
      * @return true if this is a follow-up email type
      */
     public boolean isFollowUp() {
-        return this == FOLLOW_UP;
+        return this == FOLLOW_UP || this == EXTERNALLY_FOLLOW_UP;
     }
 
     /**
      * Determines if this email type represents an initial contact.
-     * Excludes externally added emails
      *
      * @return true if this is an initial email type
      */
     public boolean isInitial() {
-        return this == INITIAL;
+        return this == INITIAL || this == EXTERNALLY_INITIAL;
     }
 
     /**

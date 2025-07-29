@@ -37,6 +37,7 @@ public class EmailSchedulingContext {
 
         this.initialEmailId = existingEmailsWithMetadata.stream()
                 .filter(e -> e.entity().getType().isInitial())
+                .filter(e -> !e.entity().getType().isExternal())
                 .findFirst()
                 .map(entity -> entity.entity().getId());
     }
