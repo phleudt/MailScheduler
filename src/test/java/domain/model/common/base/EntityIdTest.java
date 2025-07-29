@@ -1,4 +1,4 @@
-package model.common.base;
+package domain.model.common.base;
 
 import com.mailscheduler.domain.model.common.base.EntityId;
 import org.junit.jupiter.api.Test;

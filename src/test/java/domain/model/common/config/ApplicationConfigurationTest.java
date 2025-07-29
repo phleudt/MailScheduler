@@ -1,4 +1,4 @@
-package model.common.config;
+package domain.model.common.config;
 
 import com.mailscheduler.domain.model.common.base.EntityId;
 import com.mailscheduler.domain.model.common.config.ApplicationConfiguration;

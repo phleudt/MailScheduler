@@ -1,4 +1,4 @@
-package model.common.vo.spreadsheet;
+package domain.model.common.vo.spreadsheet;
 
 import com.mailscheduler.domain.model.common.vo.spreadsheet.SpreadsheetReference;
 import org.junit.jupiter.api.Test;

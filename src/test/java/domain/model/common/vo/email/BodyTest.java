@@ -1,4 +1,4 @@
-package model.common.vo.email;
+package domain.model.common.vo.email;
 
 
 import com.mailscheduler.domain.model.common.vo.email.Body;

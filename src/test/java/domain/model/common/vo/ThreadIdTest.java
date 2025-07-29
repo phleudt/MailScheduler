@@ -1,4 +1,4 @@
-package model.common.vo;
+package domain.model.common.vo;
 
 import com.mailscheduler.domain.model.common.vo.ThreadId;
 import org.junit.jupiter.api.Test;

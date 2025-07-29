@@ -1,4 +1,4 @@
-package model.common.base;
+package domain.model.common.base;
 
 import com.mailscheduler.domain.model.common.base.EntityMetadata;
 import com.mailscheduler.domain.model.common.base.NoMetadata;
